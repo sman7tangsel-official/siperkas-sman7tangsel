@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIPERKAS - SMAN 7 Kota Tangerang Selatan</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <!-- Babel untuk JSX -->
     <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -28,7 +24,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef } = React;
+        const { useState, useEffect, useMemo } = React;
 
         const Icon = ({ name, className = "w-5 h-5", ...props }) => {
             useEffect(() => {
@@ -144,53 +140,32 @@
             const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
             
             const [rooms, setRooms] = useState(() => {
-                const saved = localStorage.getItem('siperkas_rooms_v5');
+                const saved = localStorage.getItem('siperkas_rooms_v6');
                 if (saved) return JSON.parse(saved);
-                localStorage.setItem('siperkas_rooms_v5', JSON.stringify(INITIAL_ROOMS));
+                localStorage.setItem('siperkas_rooms_v6', JSON.stringify(INITIAL_ROOMS));
                 return INITIAL_ROOMS;
             });
 
             const [organizations, setOrganizations] = useState(() => {
-                const saved = localStorage.getItem('siperkas_orgs_v5');
+                const saved = localStorage.getItem('siperkas_orgs_v6');
                 if (saved) return JSON.parse(saved);
-                localStorage.setItem('siperkas_orgs_v5', JSON.stringify(INITIAL_ORGANIZATIONS));
+                localStorage.setItem('siperkas_orgs_v6', JSON.stringify(INITIAL_ORGANIZATIONS));
                 return INITIAL_ORGANIZATIONS;
             });
 
-            const [bookings, setBookings] = useState(() => {
-                const saved = JSON.parse(localStorage.getItem('siperkas_bookings')) || [];
-                return saved.map(b => {
-                    const beforePhotos = safeArray(b.beforePhotos);
-                    const afterPhotos = safeArray(b.afterPhotos);
-                    if (beforePhotos.length === 0 && afterPhotos.length === 0 && (b.status === 'Disetujui' || b.status === 'Sedang Digunakan')) {
-                        return { ...b, status: 'Menunggu Persetujuan' };
-                    }
-                    return b;
-                });
-            });
-
+            const [bookings, setBookings] = useState(() => JSON.parse(localStorage.getItem('siperkas_bookings')) || []);
             const [auditLogs, setAuditLogs] = useState(() => JSON.parse(localStorage.getItem('siperkas_logs')) || []);
-            
-            // LOGO PERMANEN BERBASIS BASE64 (TERSEMAT OTOMATIS)
-            const DEFAULT_SCHOOL_LOGO = "";
-            });
+            const [schoolLogo, setSchoolLogo] = useState(() => localStorage.getItem('siperkas_logo') || '');
 
             const [activeTab, setActiveTab] = useState('dashboard');
             const [selectedBookingDetail, setSelectedBookingDetail] = useState(null);
             const [searchQuery, setSearchQuery] = useState('');
-
             const [pendingAfterPhotos, setPendingAfterPhotos] = useState([]);
-            const [verificationChecklist, setVerificationChecklist] = useState({
-                photosValid: true,
-                powerOff: true,
-                cleanAndTidy: true
-            });
-
+            const [verificationChecklist, setVerificationChecklist] = useState({ photosValid: true, powerOff: true, cleanAndTidy: true });
             const [editingRoom, setEditingRoom] = useState(null);
             const [editingOrg, setEditingOrg] = useState(null);
             const [editingBooking, setEditingBooking] = useState(null);
-
-            const [activeModal, setActiveModal] = useState(null); 
+            const [activeModal, setActiveModal] = useState(null);
             const [adminPasswordInput, setAdminPasswordInput] = useState('');
             const [toast, setToast] = useState(null);
 
@@ -199,14 +174,10 @@
                     const activeBooking = bookings.find(b => {
                         if (b.status !== 'Disetujui' && b.status !== 'Sedang Digunakan' && b.status !== 'Proses Pengajuan') return false;
                         if (b.roomId === room.id) return true;
-                        
                         const searchTarget = `${b.roomName} ${b.activityName} ${b.notes}`.toLowerCase();
                         const cleanRoomName = room.name.toLowerCase().replace('ruang ', ''); 
-                        const cleanRoomId = room.id.toLowerCase();
-                        
-                        return searchTarget.includes(cleanRoomName) || searchTarget.includes(cleanRoomId);
+                        return searchTarget.includes(cleanRoomName) || searchTarget.includes(room.id.toLowerCase());
                     });
-
                     if (activeBooking) {
                         return { ...room, status: activeBooking.status === 'Proses Pengajuan' ? 'Proses Pengajuan' : 'Sedang Digunakan' };
                     } else {
@@ -216,14 +187,13 @@
                     }
                     return room;
                 });
-                
                 if (JSON.stringify(updatedRooms) !== JSON.stringify(rooms)) {
                     setRooms(updatedRooms);
                 }
             }, [bookings]);
 
-            useEffect(() => { localStorage.setItem('siperkas_rooms_v5', JSON.stringify(rooms)); }, [rooms]);
-            useEffect(() => { localStorage.setItem('siperkas_orgs_v5', JSON.stringify(organizations)); }, [organizations]);
+            useEffect(() => { localStorage.setItem('siperkas_rooms_v6', JSON.stringify(rooms)); }, [rooms]);
+            useEffect(() => { localStorage.setItem('siperkas_orgs_v6', JSON.stringify(organizations)); }, [organizations]);
             useEffect(() => { localStorage.setItem('siperkas_bookings', JSON.stringify(bookings)); }, [bookings]);
             useEffect(() => { localStorage.setItem('siperkas_logs', JSON.stringify(auditLogs)); }, [auditLogs]);
             useEffect(() => { localStorage.setItem('siperkas_logo', schoolLogo); }, [schoolLogo]);
@@ -313,12 +283,7 @@
                                     {ROLES.map(r => <option key={r.id} value={r.id}>{r.label} ({r.badge})</option>)}
                                 </select>
                                 {currentUserRole === 'admin' && isAdminAuthenticated && (
-                                    <button 
-                                        onClick={handleAdminLogout} 
-                                        className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow"
-                                    >
-                                        🔒 Logout
-                                    </button>
+                                    <button onClick={handleAdminLogout} className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow">🔒 Logout</button>
                                 )}
                             </div>
                         </div>
@@ -414,9 +379,7 @@
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
                                             {filteredBookings.length === 0 ? (
-                                                <tr>
-                                                    <td colSpan="6" className="p-6 text-center text-slate-400">Tidak ada data peminjaman yang cocok dengan pencarian.</td>
-                                                </tr>
+                                                <tr><td colSpan="6" className="p-6 text-center text-slate-400">Tidak ada data peminjaman yang cocok dengan pencarian.</td></tr>
                                             ) : filteredBookings.map(b => (
                                                 <tr key={b.id} className="hover:bg-slate-50">
                                                     <td className="p-4"><div className="font-bold text-blue-600">{b.id}</div><div className="text-xs text-slate-500 font-medium">{b.orgName}</div></td>
@@ -561,7 +524,7 @@
                                         <button onClick={() => setActiveModal('admin_rooms')} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow">🏫 Manajemen & Tambah Data Ruang Kelas</button>
                                         <button onClick={() => setActiveTab('bookings')} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow">📋 Kelola Persetujuan Peminjaman Siswa</button>
                                         <button onClick={() => setActiveModal('admin_orgs')} className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow">👥 Kelola Organisasi / 30 Ekskul</button>
-                                        <button onClick={() => setActiveModal('admin_logo')} className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow">🖼️ Kelola Logo Sekolah (Base64)</button>
+                                        <button onClick={() => setActiveModal('admin_logo')} className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow">🖼️ Kelola Logo Sekolah</button>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -603,7 +566,6 @@
 
                                 <div className="border p-3 rounded-xl space-y-3 bg-slate-50">
                                     <h4 className="font-bold text-xs uppercase text-slate-700">VERIFIKASI MULTI-FOTO DOKUMENTASI & TIMESTAMP</h4>
-                                    
                                     <div>
                                         <p className="font-semibold text-[11px] text-slate-600 mb-1">Foto Kondisi Awal:</p>
                                         <div className="grid grid-cols-2 gap-3">
@@ -612,34 +574,23 @@
                                                     const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
                                                     const timeStampText = typeof photoObj === 'object' ? photoObj.timestamp : getFormattedTimestamp();
                                                     return (
-                                                        <div key={i} className="relative border rounded-lg bg-white overflow-hidden shadow group">
-                                                            <img src={imgSrc} alt={`Awal ${i+1}`} className="w-full h-32 object-cover cursor-pointer hover:opacity-90" onClick={() => window.open(imgSrc)} />
-                                                            <div className="bg-black/70 text-white text-[9px] p-1.5 font-mono text-center">
-                                                                📍 {timeStampText}
-                                                            </div>
-                                                            <button 
-                                                                type="button"
-                                                                title="Hapus foto ini"
-                                                                onClick={() => {
-                                                                    if (window.confirm("Apakah Anda yakin ingin menghapus foto awal ini?")) {
-                                                                        const filteredPhotos = safeArray(selectedBookingDetail.beforePhotos).filter((_, index) => index !== i);
-                                                                        const newStatus = filteredPhotos.length === 0 ? 'Menunggu Persetujuan' : selectedBookingDetail.status;
-                                                                        const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, beforePhotos: filteredPhotos, status: newStatus} : b);
-                                                                        setBookings(updatedBookings);
-                                                                        setSelectedBookingDetail({...selectedBookingDetail, beforePhotos: filteredPhotos, status: newStatus});
-                                                                        showToast(filteredPhotos.length === 0 ? "🗑️ Foto awal dihapus. Status kembali ke 'Menunggu Persetujuan'." : "🗑️ Foto awal berhasil dihapus.");
-                                                                    }
-                                                                }}
-                                                                className="absolute top-1.5 right-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full p-1 shadow-md text-xs font-bold leading-none w-6 h-6 flex items-center justify-center transition"
-                                                            >
-                                                                ✕
-                                                            </button>
+                                                        <div key={i} className="relative border rounded-lg bg-white overflow-hidden shadow">
+                                                            <img src={imgSrc} alt={`Awal ${i+1}`} className="w-full h-32 object-cover" />
+                                                            <div className="bg-black/70 text-white text-[9px] p-1.5 font-mono text-center">📍 {timeStampText}</div>
+                                                            <button type="button" onClick={() => {
+                                                                if (window.confirm("Hapus foto awal ini?")) {
+                                                                    const filteredPhotos = safeArray(selectedBookingDetail.beforePhotos).filter((_, index) => index !== i);
+                                                                    const newStatus = filteredPhotos.length === 0 ? 'Menunggu Persetujuan' : selectedBookingDetail.status;
+                                                                    const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, beforePhotos: filteredPhotos, status: newStatus} : b);
+                                                                    setBookings(updatedBookings);
+                                                                    setSelectedBookingDetail({...selectedBookingDetail, beforePhotos: filteredPhotos, status: newStatus});
+                                                                    showToast("Foto awal dihapus.");
+                                                                }
+                                                            }} className="absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center font-bold">✕</button>
                                                         </div>
                                                     );
                                                 })
-                                            ) : (
-                                                <span className="text-slate-400 italic text-[10px] col-span-2">Belum ada foto kondisi awal. Unggah foto awal untuk otomatis mengubah status menjadi "Sedang Digunakan".</span>
-                                            )}
+                                            ) : (<span className="text-slate-400 italic text-[10px] col-span-2">Belum ada foto kondisi awal.</span>)}
                                         </div>
                                     </div>
 
@@ -651,79 +602,56 @@
                                                     const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
                                                     const timeStampText = typeof photoObj === 'object' ? photoObj.timestamp : getFormattedTimestamp();
                                                     return (
-                                                        <div key={i} className="relative border rounded-lg bg-white overflow-hidden shadow group">
-                                                            <img src={imgSrc} alt={`Akhir ${i+1}`} className="w-full h-32 object-cover cursor-pointer hover:opacity-90" onClick={() => window.open(imgSrc)} />
-                                                            <div className="bg-black/70 text-white text-[9px] p-1.5 font-mono text-center">
-                                                                📍 {timeStampText}
-                                                            </div>
-                                                            <button 
-                                                                type="button"
-                                                                title="Hapus foto ini"
-                                                                onClick={() => {
-                                                                    if (window.confirm("Apakah Anda yakin ingin menghapus foto akhir ini?")) {
-                                                                        const filteredPhotos = safeArray(selectedBookingDetail.afterPhotos).filter((_, index) => index !== i);
-                                                                        const newStatus = filteredPhotos.length === 0 ? 'Sedang Digunakan' : selectedBookingDetail.status;
-                                                                        const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, afterPhotos: filteredPhotos, status: newStatus} : b);
-                                                                        setBookings(updatedBookings);
-                                                                        setSelectedBookingDetail({...selectedBookingDetail, afterPhotos: filteredPhotos, status: newStatus});
-                                                                        showToast(filteredPhotos.length === 0 ? "🗑️ Foto akhir dihapus. Status kembali ke 'Sedang Digunakan'." : "🗑️ Foto akhir berhasil dihapus.");
-                                                                    }
-                                                                }}
-                                                                className="absolute top-1.5 right-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full p-1 shadow-md text-xs font-bold leading-none w-6 h-6 flex items-center justify-center transition"
-                                                            >
-                                                                ✕
-                                                            </button>
+                                                        <div key={i} className="relative border rounded-lg bg-white overflow-hidden shadow">
+                                                            <img src={imgSrc} alt={`Akhir ${i+1}`} className="w-full h-32 object-cover" />
+                                                            <div className="bg-black/70 text-white text-[9px] p-1.5 font-mono text-center">📍 {timeStampText}</div>
+                                                            <button type="button" onClick={() => {
+                                                                if (window.confirm("Hapus foto akhir ini?")) {
+                                                                    const filteredPhotos = safeArray(selectedBookingDetail.afterPhotos).filter((_, index) => index !== i);
+                                                                    const newStatus = filteredPhotos.length === 0 ? 'Sedang Digunakan' : selectedBookingDetail.status;
+                                                                    const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, afterPhotos: filteredPhotos, status: newStatus} : b);
+                                                                    setBookings(updatedBookings);
+                                                                    setSelectedBookingDetail({...selectedBookingDetail, afterPhotos: filteredPhotos, status: newStatus});
+                                                                    showToast("Foto akhir dihapus.");
+                                                                }
+                                                            }} className="absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center font-bold">✕</button>
                                                         </div>
                                                     );
                                                 })
-                                            ) : (
-                                                <span className="text-slate-400 italic text-[10px] col-span-2">Belum ada foto kondisi akhir yang diunggah.</span>
-                                            )}
+                                            ) : (<span className="text-slate-400 italic text-[10px] col-span-2">Belum ada foto kondisi akhir.</span>)}
                                         </div>
                                     </div>
 
                                     <div className="pt-2 border-t space-y-2">
                                         <div>
-                                            <label className="block text-[11px] font-semibold mb-1 text-blue-700">➕ Tambah / Ganti Foto Awal (Otomatis Ubah Status ke "Sedang Digunakan")</label>
+                                            <label className="block text-[11px] font-semibold mb-1 text-blue-700">➕ Tambah Foto Awal (Otomatis Ubah Status ke "Sedang Digunakan")</label>
                                             <input type="file" accept="image/*" multiple onChange={(e) => {
                                                 const files = Array.from(e.target.files);
                                                 if (files.length > 0) {
-                                                    Promise.all(files.map(file => {
-                                                        return new Promise((resolve) => {
-                                                            const reader = new FileReader();
-                                                            reader.onloadend = () => resolve({
-                                                                url: reader.result,
-                                                                timestamp: getFormattedTimestamp()
-                                                            });
-                                                            reader.readAsDataURL(file);
-                                                        });
-                                                    })).then(newPhotoObjs => {
-                                                        const existing = safeArray(selectedBookingDetail.beforePhotos);
-                                                        const combined = [...existing, ...newPhotoObjs];
-                                                        const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, beforePhotos: combined, status: 'Sedang Digunakan'} : b);
-                                                        setBookings(updatedBookings);
+                                                    Promise.all(files.map(file => new Promise((resolve) => {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => resolve({ url: reader.result, timestamp: getFormattedTimestamp() });
+                                                        reader.readAsDataURL(file);
+                                                    }))).then(newPhotoObjs => {
+                                                        const combined = [...safeArray(selectedBookingDetail.beforePhotos), ...newPhotoObjs];
+                                                        setBookings(bookings.map(b => b.id === selectedBookingDetail.id ? {...b, beforePhotos: combined, status: 'Sedang Digunakan'} : b));
                                                         setSelectedBookingDetail({...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
-                                                        showToast(`✅ Foto awal diunggah! Status otomatis berubah menjadi "Sedang Digunakan".`);
+                                                        showToast('Foto awal diunggah & Status menjadi "Sedang Digunakan".');
                                                     });
                                                 }
                                             }} className="text-[10px] w-full text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700" />
                                         </div>
 
                                         <div>
-                                            <label className="block text-[11px] font-semibold mb-1 text-emerald-700">➕ Tambah / Ganti Foto Akhir (Dengan Checklist Verifikasi & Auto Status "Selesai")</label>
+                                            <label className="block text-[11px] font-semibold mb-1 text-emerald-700">➕ Tambah Foto Akhir (Checklist Verifikasi & Status "Selesai")</label>
                                             <input type="file" accept="image/*" multiple onChange={(e) => {
                                                 const files = Array.from(e.target.files);
                                                 if (files.length > 0) {
-                                                    Promise.all(files.map(file => {
-                                                        return new Promise((resolve) => {
-                                                            const reader = new FileReader();
-                                                            reader.onloadend = () => resolve({
-                                                                url: reader.result,
-                                                                timestamp: getFormattedTimestamp()
-                                                            });
-                                                            reader.readAsDataURL(file);
-                                                        });
-                                                    })).then(newPhotoObjs => {
+                                                    Promise.all(files.map(file => new Promise((resolve) => {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => resolve({ url: reader.result, timestamp: getFormattedTimestamp() });
+                                                        reader.readAsDataURL(file);
+                                                    }))).then(newPhotoObjs => {
                                                         setPendingAfterPhotos(newPhotoObjs);
                                                         setActiveModal('checklist_verification');
                                                     });
@@ -749,68 +677,34 @@
                                     <Icon name="check-circle" className="w-6 h-6" />
                                     <h3 className="text-base text-slate-800">Checklist Verifikasi Pengembalian Ruangan</h3>
                                 </div>
-                                <p className="text-xs text-slate-500">Silakan konfirmasi checklist kondisi ruangan sebelum menyelesaikan peminjaman sesuai standar Berita Acara SMAN 7 Tangsel.</p>
-
                                 <div className="space-y-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
                                     <label className="flex items-start gap-2.5 cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={verificationChecklist.photosValid}
-                                            onChange={(e) => setVerificationChecklist({...verificationChecklist, photosValid: e.target.checked})}
-                                            className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
-                                        />
-                                        <span className="font-semibold text-slate-700">Foto Kondisi Akhir Ruangan Lengkap & Dilengkapi Timestamp Otomatis.</span>
+                                        <input type="checkbox" checked={verificationChecklist.photosValid} onChange={(e) => setVerificationChecklist({...verificationChecklist, photosValid: e.target.checked})} className="mt-0.5 rounded text-emerald-600 w-4 h-4" />
+                                        <span className="font-semibold text-slate-700">Foto Kondisi Akhir Ruangan Lengkap & Dilengkapi Timestamp.</span>
                                     </label>
-
                                     <label className="flex items-start gap-2.5 cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={verificationChecklist.powerOff}
-                                            onChange={(e) => setVerificationChecklist({...verificationChecklist, powerOff: e.target.checked})}
-                                            className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
-                                        />
-                                        <span className="font-semibold text-slate-700">Kondisi Perangkat: AC, Lampu, dan Proyektor Sudah Dipastikan Dimatikan / Padam.</span>
+                                        <input type="checkbox" checked={verificationChecklist.powerOff} onChange={(e) => setVerificationChecklist({...verificationChecklist, powerOff: e.target.checked})} className="mt-0.5 rounded text-emerald-600 w-4 h-4" />
+                                        <span className="font-semibold text-slate-700">AC, Lampu, dan Proyektor Sudah Dimatikan.</span>
                                     </label>
-
                                     <label className="flex items-start gap-2.5 cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={verificationChecklist.cleanAndTidy}
-                                            onChange={(e) => setVerificationChecklist({...verificationChecklist, cleanAndTidy: e.target.checked})}
-                                            className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
-                                        />
-                                        <span className="font-semibold text-slate-700">Ruangan Sudah Dibersihkan, Sampah Dibuang, serta Meja & Kursi Diraikan Seperti Semula.</span>
+                                        <input type="checkbox" checked={verificationChecklist.cleanAndTidy} onChange={(e) => setVerificationChecklist({...verificationChecklist, cleanAndTidy: e.target.checked})} className="mt-0.5 rounded text-emerald-600 w-4 h-4" />
+                                        <span className="font-semibold text-slate-700">Ruangan Bersih, Sampah Dibuang, & Meja Kursi Dirapikan.</span>
                                     </label>
                                 </div>
-
                                 <div className="flex justify-end gap-2 pt-2">
-                                    <button 
-                                        type="button" 
-                                        onClick={() => { setPendingAfterPhotos([]); setActiveModal('detail'); }} 
-                                        className="px-4 py-2 bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold"
-                                    >
-                                        Batal
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => {
-                                            if (!verificationChecklist.powerOff || !verificationChecklist.cleanAndTidy) {
-                                                alert("Mohon centang seluruh syarat verifikasi kebersihan & kelistrikan!");
-                                                return;
-                                            }
-                                            const existing = safeArray(selectedBookingDetail.afterPhotos);
-                                            const combined = [...existing, ...pendingAfterPhotos];
-                                            const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, afterPhotos: combined, status: 'Selesai', checklistVerified: true} : b);
-                                            setBookings(updatedBookings);
-                                            setSelectedBookingDetail({...selectedBookingDetail, afterPhotos: combined, status: 'Selesai', checklistVerified: true});
-                                            setPendingAfterPhotos([]);
-                                            setActiveModal('detail');
-                                            showToast(`🎉 Pengembalian Selesai! Status ruangan otomatis menjadi "Selesai".`);
-                                        }} 
-                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow"
-                                    >
-                                        Verifikasi & Selesaikan Peminjaman
-                                    </button>
+                                    <button type="button" onClick={() => { setPendingAfterPhotos([]); setActiveModal('detail'); }} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold">Batal</button>
+                                    <button type="button" onClick={() => {
+                                        if (!verificationChecklist.powerOff || !verificationChecklist.cleanAndTidy) {
+                                            alert("Mohon centang seluruh syarat verifikasi!");
+                                            return;
+                                        }
+                                        const combined = [...safeArray(selectedBookingDetail.afterPhotos), ...pendingAfterPhotos];
+                                        setBookings(bookings.map(b => b.id === selectedBookingDetail.id ? {...b, afterPhotos: combined, status: 'Selesai'} : b));
+                                        setSelectedBookingDetail({...selectedBookingDetail, afterPhotos: combined, status: 'Selesai'});
+                                        setPendingAfterPhotos([]);
+                                        setActiveModal('detail');
+                                        showToast('Peminjaman selesai!');
+                                    }} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow">Verifikasi & Selesaikan</button>
                                 </div>
                             </div>
                         </div>
@@ -820,12 +714,12 @@
                     {activeModal === 'edit_booking' && editingBooking && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto no-print">
                             <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 my-8">
-                                <h3 className="text-lg font-bold text-slate-800">Koreksi / Edit Data Peminjaman: {editingBooking.id}</h3>
+                                <h3 className="text-lg font-bold text-slate-800">Edit Peminjaman: {editingBooking.id}</h3>
                                 <form onSubmit={(e) => {
                                     e.preventDefault();
                                     const fd = new FormData(e.target);
-                                    const selectedRoomObj = rooms.find(r => r.id === fd.get('roomId'));
-                                    const updatedBookings = bookings.map(b => b.id === editingBooking.id ? {
+                                    const rObj = rooms.find(r => r.id === fd.get('roomId'));
+                                    setBookings(bookings.map(b => b.id === editingBooking.id ? {
                                         ...b,
                                         orgName: fd.get('orgName'),
                                         activityName: fd.get('activityName'),
@@ -837,44 +731,30 @@
                                         pjNisNip: fd.get('pjNisNip'),
                                         pjWa: fd.get('pjWa'),
                                         roomId: fd.get('roomId'),
-                                        roomName: selectedRoomObj ? selectedRoomObj.name : b.roomName,
-                                        waliKelas: selectedRoomObj ? selectedRoomObj.waliKelas : b.waliKelas,
-                                        nipWali: selectedRoomObj ? selectedRoomObj.nipWali : b.nipWali,
+                                        roomName: rObj ? rObj.name : b.roomName,
+                                        waliKelas: rObj ? rObj.waliKelas : b.waliKelas,
+                                        nipWali: rObj ? rObj.nipWali : b.nipWali,
                                         date: fd.get('date'),
                                         startTime: fd.get('startTime'),
                                         endTime: fd.get('endTime'),
                                         status: fd.get('status'),
                                         notes: fd.get('notes')
-                                    } : b);
-                                    setBookings(updatedBookings);
-                                    logActivity(`Mengedit data peminjaman ${editingBooking.id}`);
-                                    showToast('Data peminjaman berhasil diperbarui!');
+                                    } : b));
+                                    logActivity(`Mengedit peminjaman ${editingBooking.id}`);
+                                    showToast('Data peminjaman diperbarui!');
                                     setEditingBooking(null);
                                     setActiveModal(null);
                                 }} className="space-y-3 text-xs">
-                                    <div>
-                                        <label className="font-semibold block mb-1">Organisasi / Ekskul</label>
-                                        <select name="orgName" defaultValue={editingBooking.orgName} className="w-full border rounded-lg p-2 bg-white" required>
-                                            {organizations.map(o => <option key={o.id} value={o.name}>{o.name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="font-semibold block mb-1">Nama Kegiatan</label>
-                                        <input type="text" name="activityName" defaultValue={editingBooking.activityName} className="w-full border rounded-lg p-2" required />
-                                    </div>
+                                    <div><label className="font-semibold block mb-1">Organisasi</label><select name="orgName" defaultValue={editingBooking.orgName} className="w-full border rounded-lg p-2 bg-white" required>{organizations.map(o => <option key={o.id} value={o.name}>{o.name}</option>)}</select></div>
+                                    <div><label className="font-semibold block mb-1">Nama Kegiatan</label><input type="text" name="activityName" defaultValue={editingBooking.activityName} className="w-full border rounded-lg p-2" required /></div>
                                     <div className="grid grid-cols-3 gap-2">
                                         <div><label className="font-semibold block mb-1">Nama Peminjam</label><input type="text" name="applicantName" defaultValue={editingBooking.applicantName} className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">NIS Peminjam</label><input type="text" name="applicantNis" defaultValue={editingBooking.applicantNis} className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">Kelas Peminjam</label><input type="text" name="applicantClass" defaultValue={editingBooking.applicantClass} className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">NIS</label><input type="text" name="applicantNis" defaultValue={editingBooking.applicantNis} className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">Kelas</label><input type="text" name="applicantClass" defaultValue={editingBooking.applicantClass} className="w-full border rounded-lg p-2" required /></div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <div><label className="font-semibold block mb-1">No. WA Peminjam</label><input type="text" name="applicantWa" defaultValue={editingBooking.applicantWa} className="w-full border rounded-lg p-2" required /></div>
-                                        <div>
-                                            <label className="font-semibold block mb-1">Ruangan</label>
-                                            <select name="roomId" defaultValue={editingBooking.roomId} className="w-full border rounded-lg p-2 bg-white" required>
-                                                {rooms.map(r => <option key={r.id} value={r.id}>{r.name} ({r.building})</option>)}
-                                            </select>
-                                        </div>
+                                        <div><label className="font-semibold block mb-1">No WA Peminjam</label><input type="text" name="applicantWa" defaultValue={editingBooking.applicantWa} className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">Ruangan</label><select name="roomId" defaultValue={editingBooking.roomId} className="w-full border rounded-lg p-2 bg-white" required>{rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></div>
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
                                         <div><label className="font-semibold block mb-1">Tanggal</label><input type="date" name="date" defaultValue={editingBooking.date} className="w-full border rounded-lg p-2" required /></div>
@@ -884,29 +764,15 @@
                                     <div className="grid grid-cols-3 gap-2">
                                         <div><label className="font-semibold block mb-1">Nama PJ</label><input type="text" name="pjName" defaultValue={editingBooking.pjName} className="w-full border rounded-lg p-2" required /></div>
                                         <div><label className="font-semibold block mb-1">NIS/NIP PJ</label><input type="text" name="pjNisNip" defaultValue={editingBooking.pjNisNip} className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">No. WA PJ</label><input type="text" name="pjWa" defaultValue={editingBooking.pjWa} className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">No WA PJ</label><input type="text" name="pjWa" defaultValue={editingBooking.pjWa} className="w-full border rounded-lg p-2" required /></div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label className="font-semibold block mb-1">Status Peminjaman</label>
-                                            <select name="status" defaultValue={editingBooking.status} className="w-full border rounded-lg p-2 bg-white" required>
-                                                <option value="Menunggu Persetujuan">Menunggu Persetujuan</option>
-                                                <option value="Disetujui">Disetujui</option>
-                                                <option value="Proses Pengajuan">Proses Pengajuan</option>
-                                                <option value="Sedang Digunakan">Sedang Digunakan</option>
-                                                <option value="Selesai">Selesai</option>
-                                                <option value="Perbaikan">Perbaikan</option>
-                                                <option value="Ditolak">Ditolak</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="font-semibold block mb-1">Catatan</label>
-                                            <input type="text" name="notes" defaultValue={editingBooking.notes} className="w-full border rounded-lg p-2" />
-                                        </div>
+                                        <div><label className="font-semibold block mb-1">Status</label><select name="status" defaultValue={editingBooking.status} className="w-full border rounded-lg p-2 bg-white"><option value="Menunggu Persetujuan">Menunggu Persetujuan</option><option value="Disetujui">Disetujui</option><option value="Sedang Digunakan">Sedang Digunakan</option><option value="Selesai">Selesai</option><option value="Ditolak">Ditolak</option></select></div>
+                                        <div><label className="font-semibold block mb-1">Catatan</label><input type="text" name="notes" defaultValue={editingBooking.notes} className="w-full border rounded-lg p-2" /></div>
                                     </div>
                                     <div className="flex justify-end gap-2 pt-3">
-                                        <button type="button" onClick={() => { setEditingBooking(null); setActiveModal(null); }} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-xl font-semibold">Batal</button>
-                                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">Simpan Perubahan</button>
+                                        <button type="button" onClick={() => { setEditingBooking(null); setActiveModal(null); }} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-xl">Batal</button>
+                                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-xl">Simpan</button>
                                     </div>
                                 </form>
                             </div>
@@ -919,8 +785,6 @@
                             <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
                                 <div className="text-3xl">🔐</div>
                                 <h3 className="text-lg font-bold text-slate-800">Autentikasi Administrator</h3>
-                                <p className="text-xs text-slate-500">Masukkan Kata Sandi Admin untuk mengakses Panel Khusus Administrator SMAN 7 Tangsel.</p>
-                                
                                 <form onSubmit={(e) => {
                                     e.preventDefault();
                                     if (adminPasswordInput === 'admin123') {
@@ -930,22 +794,14 @@
                                         setAdminPasswordInput('');
                                         showToast('Login Administrator Berhasil!');
                                     } else {
-                                        showToast('Kata sandi salah! Akses ditolak.');
+                                        showToast('Kata sandi salah!');
                                         setAdminPasswordInput('');
                                     }
                                 }} className="space-y-3 text-xs">
-                                    <input 
-                                        type="password" 
-                                        value={adminPasswordInput}
-                                        onChange={(e) => setAdminPasswordInput(e.target.value)}
-                                        placeholder="Masukkan Password Admin" 
-                                        className="w-full border rounded-lg p-2.5 text-center font-bold tracking-widest text-sm" 
-                                        autoFocus
-                                        required 
-                                    />
+                                    <input type="password" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} placeholder="Password Admin" className="w-full border rounded-lg p-2.5 text-center font-bold tracking-widest text-sm" autoFocus required />
                                     <div className="flex gap-2 pt-2">
-                                        <button type="button" onClick={() => { setActiveModal(null); setAdminPasswordInput(''); setCurrentUserRole('applicant'); }} className="w-1/2 py-2 bg-slate-200 text-slate-800 rounded-xl font-semibold">Batal</button>
-                                        <button type="submit" className="w-1/2 py-2 bg-blue-600 text-white rounded-xl font-semibold">Masuk</button>
+                                        <button type="button" onClick={() => { setActiveModal(null); setAdminPasswordInput(''); setCurrentUserRole('applicant'); }} className="w-1/2 py-2 bg-slate-200 rounded-xl">Batal</button>
+                                        <button type="submit" className="w-1/2 py-2 bg-blue-600 text-white rounded-xl">Masuk</button>
                                     </div>
                                 </form>
                             </div>
@@ -956,17 +812,19 @@
                     {activeModal === 'admin_logo' && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
                             <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-                                <h3 className="text-lg font-bold text-slate-800">Kelola Logo Sekolah (Base64)</h3>
-                                <p className="text-xs text-slate-500">Logo saat ini sudah disematkan secara permanen di dalam kode aplikasi.</p>
-                                
-                                <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 p-4 rounded-xl gap-2 bg-slate-50">
-                                    {schoolLogo ? (
-                                        <img src={schoolLogo} alt="Preview Logo" className="w-20 h-20 object-contain bg-white rounded-lg p-1 shadow" />
-                                    ) : (
-                                        <div className="text-xs text-slate-400">Belum ada logo terunggah</div>
-                                    )}
-                                </div>
-
+                                <h3 className="text-lg font-bold text-slate-800">Kelola Logo Sekolah</h3>
+                                <p className="text-xs text-slate-500">Unggah logo baru untuk disimpan ke browser.</p>
+                                <input type="file" accept="image/*" onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                            setSchoolLogo(reader.result);
+                                            showToast('Logo berhasil diperbarui!');
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+                                }} className="text-xs w-full" />
                                 <div className="flex justify-end pt-2">
                                     <button onClick={() => setActiveModal('admin')} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-xl text-xs font-bold">Tutup</button>
                                 </div>
@@ -979,40 +837,25 @@
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto no-print">
                             <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4 my-8">
                                 <div className="flex justify-between items-center border-b pb-3">
-                                    <div>
-                                        <h3 className="text-lg font-bold text-slate-800">Manajemen Data Rombel & Ruangan</h3>
-                                        <p className="text-xs text-slate-500">Kelola master data ruangan, tambah ruangan baru, atau ubah informasi fasilitas.</p>
-                                    </div>
-                                    <button onClick={() => { setEditingRoom(null); setActiveModal('add_room'); }} className="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg">+ Tambah Ruangan Baru</button>
+                                    <h3 className="text-lg font-bold text-slate-800">Manajemen Ruangan</h3>
+                                    <button onClick={() => { setEditingRoom(null); setActiveModal('add_room'); }} className="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg">+ Tambah Ruangan</button>
                                 </div>
                                 <div className="max-h-96 overflow-y-auto space-y-3">
                                     {rooms.map(r => (
-                                        <div key={r.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-slate-50 border rounded-xl text-xs gap-3">
+                                        <div key={r.id} className="flex justify-between items-center p-3 bg-slate-50 border rounded-xl text-xs gap-3">
                                             <div>
-                                                <div className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                                                    {r.name} ({r.building})
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                                        r.status === 'Tersedia' ? 'bg-emerald-100 text-emerald-800' :
-                                                        r.status === 'Sedang Digunakan' ? 'bg-indigo-100 text-indigo-800' :
-                                                        r.status === 'Proses Pengajuan' ? 'bg-amber-100 text-amber-800' :
-                                                        r.status === 'Perbaikan' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-800'
-                                                    }`}>{r.status}</span>
-                                                </div>
-                                                <div className="text-slate-500 mt-0.5">Kapasitas: {r.capacity} • Pendamping: {r.waliKelas} • Fasilitas: {r.facilities}</div>
+                                                <div className="font-bold text-slate-800">{r.name} ({r.building})</div>
+                                                <div className="text-slate-500">Kapasitas: {r.capacity} • Pendamping: {r.waliKelas}</div>
                                             </div>
-                                            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
-                                                <button onClick={() => { setEditingRoom(r); setActiveModal('add_room'); }} className="px-2.5 py-1.5 bg-amber-100 text-amber-800 font-bold rounded-lg hover:bg-amber-200">Edit Data</button>
-                                                <button onClick={() => {
-                                                    setRooms(rooms.filter(x => x.id !== r.id));
-                                                    logActivity(`Menghapus ruangan ${r.name}`);
-                                                    showToast(`Ruangan ${r.name} dihapus.`);
-                                                }} className="px-2.5 py-1.5 bg-rose-100 text-rose-700 font-bold rounded-lg hover:bg-rose-200">Hapus</button>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => { setEditingRoom(r); setActiveModal('add_room'); }} className="px-2.5 py-1 bg-amber-100 text-amber-800 font-bold rounded-lg">Edit</button>
+                                                <button onClick={() => { setRooms(rooms.filter(x => x.id !== r.id)); showToast('Ruangan dihapus.'); }} className="px-2.5 py-1 bg-rose-100 text-rose-700 font-bold rounded-lg">Hapus</button>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="flex justify-end pt-3 border-t">
-                                    <button onClick={() => setActiveModal('admin')} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-xl text-xs font-bold">Tutup</button>
+                                    <button onClick={() => setActiveModal('admin')} className="px-4 py-2 bg-slate-200 rounded-xl text-xs font-bold">Tutup</button>
                                 </div>
                             </div>
                         </div>
@@ -1022,46 +865,26 @@
                     {activeModal === 'add_room' && (
                         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
                             <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-3">
-                                <h3 className="font-bold text-slate-800">{editingRoom ? 'Edit Ruangan' : 'Tambah Ruangan Baru'}</h3>
+                                <h3 className="font-bold text-slate-800">{editingRoom ? 'Edit Ruangan' : 'Tambah Ruangan'}</h3>
                                 <form onSubmit={(e) => {
                                     e.preventDefault();
                                     const fd = new FormData(e.target);
                                     if (editingRoom) {
-                                        setRooms(rooms.map(r => r.id === editingRoom.id ? {
-                                            ...r,
-                                            name: fd.get('name'),
-                                            building: fd.get('building'),
-                                            capacity: fd.get('capacity'),
-                                            waliKelas: fd.get('waliKelas'),
-                                            nipWali: fd.get('nipWali'),
-                                            facilities: fd.get('facilities')
-                                        } : r));
-                                        logActivity(`Mengubah data ruangan ${fd.get('name')}`);
-                                        showToast('Data ruangan berhasil diperbarui!');
+                                        setRooms(rooms.map(r => r.id === editingRoom.id ? { ...r, name: fd.get('name'), building: fd.get('building'), capacity: fd.get('capacity'), waliKelas: fd.get('waliKelas'), nipWali: fd.get('nipWali'), facilities: fd.get('facilities') } : r));
+                                        showToast('Ruangan diperbarui!');
                                     } else {
-                                        const newR = {
-                                            id: `R-${Math.floor(100 + Math.random()*900)}`,
-                                            name: fd.get('name'),
-                                            building: fd.get('building'),
-                                            capacity: fd.get('capacity'),
-                                            waliKelas: fd.get('waliKelas'),
-                                            nipWali: fd.get('nipWali'),
-                                            status: 'Tersedia',
-                                            facilities: fd.get('facilities')
-                                        };
-                                        setRooms([...rooms, newR]);
-                                        logActivity(`Menambah ruangan ${newR.name}`);
-                                        showToast('Ruangan baru berhasil ditambahkan!');
+                                        setRooms([...rooms, { id: `R-${Math.floor(100+Math.random()*900)}`, name: fd.get('name'), building: fd.get('building'), capacity: fd.get('capacity'), waliKelas: fd.get('waliKelas'), nipWali: fd.get('nipWali'), status: 'Tersedia', facilities: fd.get('facilities') }]);
+                                        showToast('Ruangan ditambahkan!');
                                     }
                                     setEditingRoom(null);
                                     setActiveModal('admin_rooms');
                                 }} className="space-y-3 text-xs">
-                                    <div><label className="font-semibold block mb-1">Nama Ruangan</label><input type="text" name="name" defaultValue={editingRoom?.name || ''} placeholder="Contoh: Ruang X-12" className="w-full border rounded-lg p-2" required /></div>
-                                    <div><label className="font-semibold block mb-1">Gedung / Lokasi</label><input type="text" name="building" defaultValue={editingRoom?.building || ''} placeholder="Contoh: Gedung A LT 1" className="w-full border rounded-lg p-2" required /></div>
-                                    <div><label className="font-semibold block mb-1">Kapasitas</label><input type="text" name="capacity" defaultValue={editingRoom?.capacity || ''} placeholder="36 Siswa" className="w-full border rounded-lg p-2" required /></div>
-                                    <div><label className="font-semibold block mb-1">Nama Pendamping / Penanggung Jawab</label><input type="text" name="waliKelas" defaultValue={editingRoom?.waliKelas || ''} placeholder="Nama Lengkap" className="w-full border rounded-lg p-2" required /></div>
-                                    <div><label className="font-semibold block mb-1">NIP Pendamping (Jika Ada)</label><input type="text" name="nipWali" defaultValue={editingRoom?.nipWali || '-'} placeholder="NIP / -" className="w-full border rounded-lg p-2" /></div>
-                                    <div><label className="font-semibold block mb-1">Fasilitas</label><input type="text" name="facilities" defaultValue={editingRoom?.facilities || ''} placeholder="AC, Proyektor, Whiteboard" className="w-full border rounded-lg p-2" required /></div>
+                                    <div><label className="font-semibold block mb-1">Nama Ruangan</label><input type="text" name="name" defaultValue={editingRoom?.name || ''} className="w-full border rounded-lg p-2" required /></div>
+                                    <div><label className="font-semibold block mb-1">Gedung</label><input type="text" name="building" defaultValue={editingRoom?.building || ''} className="w-full border rounded-lg p-2" required /></div>
+                                    <div><label className="font-semibold block mb-1">Kapasitas</label><input type="text" name="capacity" defaultValue={editingRoom?.capacity || ''} className="w-full border rounded-lg p-2" required /></div>
+                                    <div><label className="font-semibold block mb-1">Pendamping</label><input type="text" name="waliKelas" defaultValue={editingRoom?.waliKelas || ''} className="w-full border rounded-lg p-2" required /></div>
+                                    <div><label className="font-semibold block mb-1">NIP Pendamping</label><input type="text" name="nipWali" defaultValue={editingRoom?.nipWali || '-'} className="w-full border rounded-lg p-2" /></div>
+                                    <div><label className="font-semibold block mb-1">Fasilitas</label><input type="text" name="facilities" defaultValue={editingRoom?.facilities || ''} className="w-full border rounded-lg p-2" required /></div>
                                     <div className="flex justify-end gap-2 pt-2">
                                         <button type="button" onClick={() => { setEditingRoom(null); setActiveModal('admin_rooms'); }} className="px-3 py-1.5 bg-slate-200 rounded-lg">Batal</button>
                                         <button type="submit" className="px-3 py-1.5 bg-blue-600 text-white rounded-lg">Simpan</button>
@@ -1076,29 +899,22 @@
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto no-print">
                             <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4 my-8">
                                 <div className="flex justify-between items-center border-b pb-3">
-                                    <h3 className="text-lg font-bold text-slate-800">Manajemen Organisasi & Ekstrakurikuler</h3>
-                                    <button onClick={() => { setEditingOrg(null); setActiveModal('add_org'); }} className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg">+ Tambah Ekskul Baru</button>
+                                    <h3 className="text-lg font-bold text-slate-800">Manajemen Organisasi / Ekskul</h3>
+                                    <button onClick={() => { setEditingOrg(null); setActiveModal('add_org'); }} className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg">+ Tambah Ekskul</button>
                                 </div>
                                 <div className="max-h-96 overflow-y-auto space-y-2">
                                     {organizations.map(o => (
                                         <div key={o.id} className="flex justify-between items-center p-3 bg-slate-50 border rounded-xl text-xs gap-3">
-                                            <div>
-                                                <div className="font-bold text-slate-800 text-sm">{o.name} <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded ml-2">{o.type}</span></div>
-                                                <div className="text-slate-500">Pembina / Pelatih: {o.coach} {o.nipCoach !== '-' ? `(NIP: ${o.nipCoach})` : ''}</div>
-                                            </div>
-                                            <div className="flex gap-2 shrink-0">
-                                                <button onClick={() => { setEditingOrg(o); setActiveModal('add_org'); }} className="px-2.5 py-1 bg-amber-100 text-amber-800 font-bold rounded-lg hover:bg-amber-200">Edit</button>
-                                                <button onClick={() => {
-                                                    setOrganizations(organizations.filter(x => x.id !== o.id));
-                                                    logActivity(`Menghapus organisasi ${o.name}`);
-                                                    showToast(`Organisasi ${o.name} dihapus.`);
-                                                }} className="px-2.5 py-1 bg-rose-100 text-rose-700 font-bold rounded-lg hover:bg-rose-200">Hapus</button>
+                                            <div><div className="font-bold text-slate-800">{o.name} <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded ml-2">{o.type}</span></div><div className="text-slate-500">Pembina: {o.coach}</div></div>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => { setEditingOrg(o); setActiveModal('add_org'); }} className="px-2.5 py-1 bg-amber-100 text-amber-800 font-bold rounded-lg">Edit</button>
+                                                <button onClick={() => { setOrganizations(organizations.filter(x => x.id !== o.id)); showToast('Ekskul dihapus.'); }} className="px-2.5 py-1 bg-rose-100 text-rose-700 font-bold rounded-lg">Hapus</button>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="flex justify-end pt-3 border-t">
-                                    <button onClick={() => setActiveModal('admin')} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-xl text-xs font-bold">Tutup</button>
+                                    <button onClick={() => setActiveModal('admin')} className="px-4 py-2 bg-slate-200 rounded-xl text-xs font-bold">Tutup</button>
                                 </div>
                             </div>
                         </div>
@@ -1108,47 +924,24 @@
                     {activeModal === 'add_org' && (
                         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
                             <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-3">
-                                <h3 className="font-bold text-slate-800">{editingOrg ? 'Edit Organisasi / Ekskul' : 'Tambah Organisasi / Ekskul Baru'}</h3>
+                                <h3 className="font-bold text-slate-800">{editingOrg ? 'Edit Ekskul' : 'Tambah Ekskul'}</h3>
                                 <form onSubmit={(e) => {
                                     e.preventDefault();
                                     const fd = new FormData(e.target);
                                     if (editingOrg) {
-                                        setOrganizations(organizations.map(o => o.id === editingOrg.id ? {
-                                            ...o,
-                                            name: fd.get('name'),
-                                            type: fd.get('type'),
-                                            coach: fd.get('coach'),
-                                            nipCoach: fd.get('nipCoach')
-                                        } : o));
-                                        logActivity(`Mengubah data organisasi ${fd.get('name')}`);
-                                        showToast('Data organisasi berhasil diperbarui!');
+                                        setOrganizations(organizations.map(o => o.id === editingOrg.id ? { ...o, name: fd.get('name'), type: fd.get('type'), coach: fd.get('coach'), nipCoach: fd.get('nipCoach') } : o));
+                                        showToast('Ekskul diperbarui!');
                                     } else {
-                                        const newO = {
-                                            id: `ORG-${Math.floor(10 + Math.random()*90)}`,
-                                            name: fd.get('name'),
-                                            type: fd.get('type'),
-                                            coach: fd.get('coach'),
-                                            nipCoach: fd.get('nipCoach')
-                                        };
-                                        setOrganizations([...organizations, newO]);
-                                        logActivity(`Menambah organisasi ${newO.name}`);
-                                        showToast('Organisasi baru berhasil ditambahkan!');
+                                        setOrganizations([...organizations, { id: `ORG-${Math.floor(10+Math.random()*90)}`, name: fd.get('name'), type: fd.get('type'), coach: fd.get('coach'), nipCoach: fd.get('nipCoach') }]);
+                                        showToast('Ekskul ditambahkan!');
                                     }
                                     setEditingOrg(null);
                                     setActiveModal('admin_orgs');
                                 }} className="space-y-3 text-xs">
-                                    <div><label className="font-semibold block mb-1">Nama Organisasi / Ekskul</label><input type="text" name="name" defaultValue={editingOrg?.name || ''} placeholder="Contoh: KLUB ASTRONOMI" className="w-full border rounded-lg p-2" required /></div>
-                                    <div>
-                                        <label className="font-semibold block mb-1">Kategori</label>
-                                        <select name="type" defaultValue={editingOrg?.type || 'Ekskul'} className="w-full border rounded-lg p-2 bg-white" required>
-                                            <option value="Ekskul">Ekstrakurikuler</option>
-                                            <option value="OSIS">OSIS</option>
-                                            <option value="MPK">MPK</option>
-                                            <option value="Lainnya">Kegiatan Resmi Lainnya</option>
-                                        </select>
-                                    </div>
-                                    <div><label className="font-semibold block mb-1">Nama Pembina / Pelatih</label><input type="text" name="coach" defaultValue={editingOrg?.coach || ''} placeholder="Nama Guru Pembina" className="w-full border rounded-lg p-2" required /></div>
-                                    <div><label className="font-semibold block mb-1">NIP Pembina (Jika Ada)</label><input type="text" name="nipCoach" defaultValue={editingOrg?.nipCoach || '-'} placeholder="NIP / -" className="w-full border rounded-lg p-2" /></div>
+                                    <div><label className="font-semibold block mb-1">Nama Organisasi / Ekskul</label><input type="text" name="name" defaultValue={editingOrg?.name || ''} className="w-full border rounded-lg p-2" required /></div>
+                                    <div><label className="font-semibold block mb-1">Kategori</label><select name="type" defaultValue={editingOrg?.type || 'Ekskul'} className="w-full border rounded-lg p-2 bg-white"><option value="Ekskul">Ekstrakurikuler</option><option value="OSIS">OSIS</option><option value="MPK">MPK</option><option value="Lainnya">Lainnya</option></select></div>
+                                    <div><label className="font-semibold block mb-1">Pembina</label><input type="text" name="coach" defaultValue={editingOrg?.coach || ''} className="w-full border rounded-lg p-2" required /></div>
+                                    <div><label className="font-semibold block mb-1">NIP Pembina</label><input type="text" name="nipCoach" defaultValue={editingOrg?.nipCoach || '-'} className="w-full border rounded-lg p-2" /></div>
                                     <div className="flex justify-end gap-2 pt-2">
                                         <button type="button" onClick={() => { setEditingOrg(null); setActiveModal('admin_orgs'); }} className="px-3 py-1.5 bg-slate-200 rounded-lg">Batal</button>
                                         <button type="submit" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg">Simpan</button>
@@ -1165,10 +958,10 @@
                                 <div className="text-center border-b-2 border-black pb-4 mb-4 flex flex-col items-center gap-1">
                                     {schoolLogo && <img src={schoolLogo} alt="Logo" className="w-14 h-14 object-contain" />}
                                     <div>
-                                        <h3 className="text-xs font-bold uppercase" style={{color: '#002855'}}>Pemerintah Provinsi Banten</h3>
-                                        <h3 className="text-xs font-bold uppercase" style={{color: '#002855'}}>Dinas Pendidikan dan Kebudayaan</h3>
-                                        <h2 className="text-lg font-extrabold mt-1" style={{color: '#002855'}}>SMAN 7 KOTA TANGERANG SELATAN</h2>
-                                        <p className="text-[11px]" style={{color: '#002855'}}>Jl. Villa Melati Mas Blok J, Pondok Jagung, Kec. Serpong Utara, Kota Tangerang Selatan</p>
+                                        <h3 className="text-xs font-bold uppercase text-blue-900">Pemerintah Provinsi Banten</h3>
+                                        <h3 className="text-xs font-bold uppercase text-blue-900">Dinas Pendidikan dan Kebudayaan</h3>
+                                        <h2 className="text-lg font-extrabold mt-1 text-blue-900">SMAN 7 KOTA TANGERANG SELATAN</h2>
+                                        <p className="text-[11px] text-blue-900">Jl. Villa Melati Mas Blok J, Pondok Jagung, Kec. Serpong Utara, Kota Tangerang Selatan</p>
                                     </div>
                                     <h1 className="text-base font-bold text-black mt-2 underline">BERITA ACARA PEMINJAMAN & PENGEMBALIAN RUANG KELAS</h1>
                                     <p className="text-xs font-bold text-black">Nomor Transaksi: {selectedBookingDetail.id}</p>
@@ -1177,134 +970,56 @@
                                 <div className="space-y-4 text-xs text-black">
                                     <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border-2 border-black font-semibold">
                                         <div><strong>Organisasi:</strong> {selectedBookingDetail.orgName}</div>
-                                        <div><strong>Nama Kegiatan:</strong> {selectedBookingDetail.activityName}</div>
+                                        <div><strong>Kegiatan:</strong> {selectedBookingDetail.activityName}</div>
                                         <div><strong>Ruangan:</strong> {selectedBookingDetail.roomName}</div>
-                                        <div><strong>Tanggal:</strong> {selectedBookingDetail.date} ({selectedBookingDetail.startTime} - {selectedBookingDetail.endTime} WIB)</div>
+                                        <div><strong>Waktu:</strong> {selectedBookingDetail.date} ({selectedBookingDetail.startTime} - {selectedBookingDetail.endTime} WIB)</div>
                                         <div><strong>Peminjam:</strong> {selectedBookingDetail.applicantName} (NIS: {selectedBookingDetail.applicantNis || '-'})</div>
-                                        <div><strong>Penanggung Jawab:</strong> {selectedBookingDetail.pjName}</div>
-                                        <div><strong>Pendamping / Wali Kelas:</strong> {selectedBookingDetail.waliKelas}</div>
-                                        <div><strong>Status Akhir:</strong> {selectedBookingDetail.status}</div>
+                                        <div><strong>PJ:</strong> {selectedBookingDetail.pjName}</div>
+                                        <div><strong>Pendamping:</strong> {selectedBookingDetail.waliKelas}</div>
+                                        <div><strong>Status:</strong> {selectedBookingDetail.status}</div>
                                     </div>
 
                                     <div className="border-2 border-black p-3 rounded-xl space-y-2">
-                                        <h4 className="font-bold uppercase text-black mb-1">Verifikasi Dokumentasi, Kelistrikan & Kebersihan Ruangan</h4>
-                                        <p className="font-bold text-black">✓ Foto Kondisi Awal & Akhir Ruangan Sesuai Standar (Dilengkapi Timestamp Lokasi & Waktu)</p>
-                                        <p className="font-bold text-black">✓ Perangkat Elektronik & Kelistrikan (AC, Lampu, Proyektor) Dimatikan dengan Benar</p>
-                                        <p className="font-bold text-black">✓ Ruangan Dalam Kondisi Bersih, Rapi, dan Meja/Kursi Sesuai Tata Letak Semula</p>
-                                        
+                                        <h4 className="font-bold uppercase text-black mb-1">Verifikasi Dokumentasi & Kebersihan</h4>
                                         <div className="grid grid-cols-2 gap-4 pt-2">
                                             <div className="border-2 border-black p-2 rounded-lg bg-white">
-                                                <p className="font-bold text-[11px] text-black mb-1">Lampiran Foto Kondisi Awal:</p>
+                                                <p className="font-bold text-[11px] mb-1">Foto Kondisi Awal:</p>
                                                 <div className="grid grid-cols-1 gap-2">
                                                     {safeArray(selectedBookingDetail.beforePhotos).length > 0 ? (
                                                         safeArray(selectedBookingDetail.beforePhotos).map((photoObj, i) => {
                                                             const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
-                                                            const timeStampText = typeof photoObj === 'object' ? photoObj.timestamp : getFormattedTimestamp();
-                                                            return (
-                                                                <div key={i} className="relative border-2 border-black rounded-lg overflow-hidden bg-white">
-                                                                    <img src={imgSrc} alt={`Awal ${i+1}`} className="w-full h-36 object-cover bg-white" />
-                                                                    <div className="bg-black text-white text-[9px] p-1.5 font-mono text-center">
-                                                                        📍 {timeStampText}
-                                                                    </div>
-                                                                </div>
-                                                            );
+                                                            return <img key={i} src={imgSrc} alt="Awal" className="w-full h-36 object-cover border" />;
                                                         })
-                                                    ) : (
-                                                        <span className="text-[11px] text-black font-semibold italic">Belum ada foto awal</span>
-                                                    )}
+                                                    ) : (<span className="italic text-[11px]">Belum ada foto</span>)}
                                                 </div>
                                             </div>
                                             <div className="border-2 border-black p-2 rounded-lg bg-white">
-                                                <p className="font-bold text-[11px] text-black mb-1">Lampiran Foto Kondisi Akhir:</p>
+                                                <p className="font-bold text-[11px] mb-1">Foto Kondisi Akhir:</p>
                                                 <div className="grid grid-cols-1 gap-2">
                                                     {safeArray(selectedBookingDetail.afterPhotos).length > 0 ? (
                                                         safeArray(selectedBookingDetail.afterPhotos).map((photoObj, i) => {
                                                             const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
-                                                            const timeStampText = typeof photoObj === 'object' ? photoObj.timestamp : getFormattedTimestamp();
-                                                            return (
-                                                                <div key={i} className="relative border-2 border-black rounded-lg overflow-hidden bg-white">
-                                                                    <img src={imgSrc} alt={`Akhir ${i+1}`} className="w-full h-36 object-cover bg-white" />
-                                                                    <div className="bg-black text-white text-[9px] p-1.5 font-mono text-center">
-                                                                        📍 {timeStampText}
-                                                                    </div>
-                                                                </div>
-                                                            );
+                                                            return <img key={i} src={imgSrc} alt="Akhir" className="w-full h-36 object-cover border" />;
                                                         })
-                                                    ) : (
-                                                        <span className="text-[11px] text-black font-semibold italic">Belum ada foto akhir</span>
-                                                    )}
+                                                    ) : (<span className="italic text-[11px]">Belum ada foto</span>)}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="pt-4 border-t-2 border-black mt-4">
-                                        <p className="text-center font-bold text-black mb-4">LEMBAR PENGESAHAN & TANDA TANGAN PERTANGGUNGJAWABAN</p>
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-[10px]">
-                                            <div className="border-2 border-black p-2 rounded-xl bg-white flex flex-col justify-between">
-                                                <div>
-                                                    <p className="font-bold text-black">Peminjam</p>
-                                                    <p className="text-[9px] font-bold text-black mb-1">Organisasi / Siswa</p>
-                                                </div>
-                                                <div className="h-16 flex items-center justify-center"></div>
-                                                <div>
-                                                    <p className="font-bold text-black truncate">{selectedBookingDetail.applicantName}</p>
-                                                    <p className="text-[9px] font-bold text-black">NIS. {selectedBookingDetail.applicantNis || '-'}</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="border-2 border-black p-2 rounded-xl bg-white flex flex-col justify-between">
-                                                <div>
-                                                    <p className="font-bold text-black">Penanggung Jawab</p>
-                                                    <p className="text-[9px] font-bold text-black mb-1">Ketua / Pembina</p>
-                                                </div>
-                                                <div className="h-16 flex items-center justify-center"></div>
-                                                <div>
-                                                    <p className="font-bold text-black truncate">
-                                                        {(() => {
-                                                            const org = organizations.find(o => o.name === selectedBookingDetail.orgName);
-                                                            return org ? org.coach : selectedBookingDetail.pjName;
-                                                        })()}
-                                                    </p>
-                                                    <p className="text-[9px] font-bold text-black truncate">
-                                                        NIP/ID: {(() => {
-                                                            const org = organizations.find(o => o.name === selectedBookingDetail.orgName);
-                                                            return org ? (org.nipCoach || '-') : (selectedBookingDetail.pjNisNip || '-');
-                                                        })()}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="border-2 border-black p-2 rounded-xl bg-white flex flex-col justify-between">
-                                                <div>
-                                                    <p className="font-bold text-black">Mengetahui</p>
-                                                    <p className="text-[9px] font-bold text-black mb-1">Pendamping / Wali Kelas</p>
-                                                </div>
-                                                <div className="h-16 flex items-center justify-center"></div>
-                                                <div>
-                                                    <p className="font-bold text-black truncate">{selectedBookingDetail.waliKelas}</p>
-                                                    <p className="text-[9px] font-bold text-black truncate">NIP. {selectedBookingDetail.nipWali || '-'}</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="border-2 border-black p-2 rounded-xl bg-white flex flex-col justify-between">
-                                                <div>
-                                                    <p className="font-bold text-black">Disetujui</p>
-                                                    <p className="text-[9px] font-bold text-black mb-1">Wakasek Sarpras</p>
-                                                </div>
-                                                <div className="h-16 flex items-center justify-center"></div>
-                                                <div>
-                                                    <p className="font-bold text-black whitespace-nowrap text-[9px] overflow-hidden text-ellipsis">Tri Kurnia Fatmawati, S.Si, M.Pd</p>
-                                                    <p className="text-[9px] font-bold text-black">NIP. 198105042011012003</p>
-                                                </div>
-                                            </div>
+                                            <div className="border-2 border-black p-2 rounded-xl bg-white"><p className="font-bold">Peminjam</p><div className="h-16"></div><p className="font-bold">{selectedBookingDetail.applicantName}</p></div>
+                                            <div className="border-2 border-black p-2 rounded-xl bg-white"><p className="font-bold">Penanggung Jawab</p><div className="h-16"></div><p className="font-bold">{selectedBookingDetail.pjName}</p></div>
+                                            <div className="border-2 border-black p-2 rounded-xl bg-white"><p className="font-bold">Wali Kelas</p><div className="h-16"></div><p className="font-bold">{selectedBookingDetail.waliKelas}</p></div>
+                                            <div className="border-2 border-black p-2 rounded-xl bg-white"><p className="font-bold">Wakasek Sarpras</p><div className="h-16"></div><p className="font-bold">Tri Kurnia Fatmawati</p></div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="mt-6 flex justify-end gap-3 pt-4 border-t-2 border-black no-print">
-                                    <button onClick={() => window.print()} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow flex items-center gap-2">🖨️ Cetak / Simpan PDF</button>
-                                    <button onClick={() => setActiveModal(null)} className="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-xl text-xs font-bold">Tutup</button>
+                                    <button onClick={() => window.print()} className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold">🖨️ Cetak PDF</button>
+                                    <button onClick={() => setActiveModal(null)} className="bg-slate-200 text-slate-800 px-4 py-2 rounded-xl text-xs font-bold">Tutup</button>
                                 </div>
                             </div>
                         </div>
@@ -1314,93 +1029,59 @@
                     {activeModal === 'new_booking' && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto no-print">
                             <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 my-8">
-                                <h3 className="text-lg font-bold text-slate-800">Formulir Pengajuan Peminjaman Ruang Kelas</h3>
+                                <h3 className="text-lg font-bold text-slate-800">Formulir Pengajuan Peminjaman</h3>
                                 <form onSubmit={(e) => {
                                     e.preventDefault();
-                                    const formData = new FormData(e.target);
-                                    const roomId = formData.get('roomId');
-                                    const date = formData.get('date');
-                                    const startTime = formData.get('startTime');
-                                    const endTime = formData.get('endTime');
+                                    const fd = new FormData(e.target);
+                                    const roomId = fd.get('roomId');
+                                    const date = fd.get('date');
+                                    const startTime = fd.get('startTime');
+                                    const endTime = fd.get('endTime');
+                                    const rObj = rooms.find(r => r.id === roomId);
 
-                                    const roomObj = rooms.find(r => r.id === roomId);
-                                    if (roomObj && (roomObj.status === 'Sedang Digunakan' || roomObj.status === 'Proses Pengajuan')) {
-                                        showToast(`⚠️ Gagal: Ruangan ${roomObj.name} sedang digunakan / dalam proses pengajuan!`);
+                                    if (rObj && (rObj.status === 'Sedang Digunakan' || rObj.status === 'Proses Pengajuan')) {
+                                        showToast(`Ruangan sedang digunakan!`);
                                         return;
                                     }
 
-                                    const isConflict = bookings.some(b => {
-                                        if (b.status === 'Selesai' || b.status === 'Ditolak') return false;
-                                        if (b.roomId !== roomId) return false;
-                                        if (b.date !== date) return false;
-                                        return (startTime < b.endTime && endTime > b.startTime);
-                                    });
-
-                                    if (isConflict) {
-                                        showToast(`❌ Gagal: Ruangan ini sudah dibooking pada tanggal & jam tersebut (Bentrok Jadwal)!`);
-                                        return;
-                                    }
-
-                                    const selectedRoomObj = rooms.find(r => r.id === roomId);
                                     const newB = {
                                         id: `SPK-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(100+Math.random()*900)}`,
-                                        orgName: formData.get('orgName'),
-                                        activityName: formData.get('activityName'),
-                                        applicantName: formData.get('applicantName'),
-                                        applicantNis: formData.get('applicantNis'),
-                                        applicantClass: formData.get('applicantClass'),
-                                        applicantWa: formData.get('applicantWa'),
-                                        pjName: formData.get('pjName'),
-                                        pjNisNip: formData.get('pjNisNip'),
-                                        pjWa: formData.get('pjWa'),
+                                        orgName: fd.get('orgName'),
+                                        activityName: fd.get('activityName'),
+                                        applicantName: fd.get('applicantName'),
+                                        applicantNis: fd.get('applicantNis'),
+                                        applicantClass: fd.get('applicantClass'),
+                                        applicantWa: fd.get('applicantWa'),
+                                        pjName: fd.get('pjName'),
+                                        pjNisNip: fd.get('pjNisNip'),
+                                        pjWa: fd.get('pjWa'),
                                         roomId: roomId,
-                                        roomName: selectedRoomObj ? selectedRoomObj.name : 'Ruangan',
-                                        waliKelas: selectedRoomObj ? selectedRoomObj.waliKelas : 'Pendamping Kelas',
-                                        nipWali: selectedRoomObj ? selectedRoomObj.nipWali : '-',
+                                        roomName: rObj ? rObj.name : 'Ruangan',
+                                        waliKelas: rObj ? rObj.waliKelas : '-',
+                                        nipWali: rObj ? rObj.nipWali : '-',
                                         date: date,
                                         startTime: startTime,
                                         endTime: endTime,
-                                        notes: formData.get('notes'),
+                                        notes: fd.get('notes'),
                                         status: 'Menunggu Persetujuan',
-                                        createdAt: new Date().toISOString().replace('T', ' ').substring(0, 19),
                                         beforePhotos: [],
                                         afterPhotos: []
                                     };
                                     setBookings([newB, ...bookings]);
-                                    logActivity(`Mengajukan peminjaman baru ${newB.id}`);
-                                    showToast('Pengajuan peminjaman berhasil dikirim! Silakan unggah foto awal.');
+                                    logActivity(`Mengajukan peminjaman ${newB.id}`);
+                                    showToast('Pengajuan berhasil dikirim!');
                                     setActiveModal(null);
                                 }} className="space-y-3 text-xs">
-                                    <div>
-                                        <label className="font-semibold block mb-1">Organisasi / Ekskul Peminjam</label>
-                                        <select name="orgName" className="w-full border rounded-lg p-2 bg-white" required>
-                                            {organizations.map(o => <option key={o.id} value={o.name}>{o.name} (Pembina: {o.coach})</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="font-semibold block mb-1">Nama Kegiatan</label>
-                                        <input type="text" name="activityName" placeholder="Contoh: Latihan Rutin & Evaluasi" className="w-full border rounded-lg p-2" required />
-                                    </div>
+                                    <div><label className="font-semibold block mb-1">Organisasi</label><select name="orgName" className="w-full border rounded-lg p-2 bg-white" required>{organizations.map(o => <option key={o.id} value={o.name}>{o.name}</option>)}</select></div>
+                                    <div><label className="font-semibold block mb-1">Nama Kegiatan</label><input type="text" name="activityName" className="w-full border rounded-lg p-2" required /></div>
                                     <div className="grid grid-cols-3 gap-2">
-                                        <div><label className="font-semibold block mb-1">Nama Peminjam</label><input type="text" name="applicantName" placeholder="Nama Lengkap" className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">NIS Peminjam</label><input type="text" name="applicantNis" placeholder="NIS" className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">Kelas Peminjam</label><input type="text" name="applicantClass" placeholder="Kelas" className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">Nama Peminjam</label><input type="text" name="applicantName" className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">NIS</label><input type="text" name="applicantNis" className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">Kelas</label><input type="text" name="applicantClass" className="w-full border rounded-lg p-2" required /></div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <div><label className="font-semibold block mb-1">No. WhatsApp Peminjam</label><input type="text" name="applicantWa" placeholder="08xxxxxxxxxx" className="w-full border rounded-lg p-2" required /></div>
-                                        <div>
-                                            <label className="font-semibold block mb-1">Pilih Ruangan</label>
-                                            <select name="roomId" className="w-full border rounded-lg p-2 bg-white" required>
-                                                {rooms.map(r => {
-                                                    const isOccupied = r.status === 'Sedang Digunakan' || r.status === 'Proses Pengajuan';
-                                                    return (
-                                                        <option key={r.id} value={r.id} disabled={isOccupied}>
-                                                            {r.name} ({r.building}) {isOccupied ? `❌ [TERKUNCI / ${r.status.toUpperCase()}]` : '🟢 [Tersedia]'}
-                                                        </option>
-                                                    );
-                                                })}
-                                            </select>
-                                        </div>
+                                        <div><label className="font-semibold block mb-1">No WA Peminjam</label><input type="text" name="applicantWa" className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">Ruangan</label><select name="roomId" className="w-full border rounded-lg p-2 bg-white" required>{rooms.map(r => <option key={r.id} value={r.id}>{r.name} ({r.building})</option>)}</select></div>
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
                                         <div><label className="font-semibold block mb-1">Tanggal</label><input type="date" name="date" className="w-full border rounded-lg p-2" required /></div>
@@ -1408,14 +1089,14 @@
                                         <div><label className="font-semibold block mb-1">Jam Selesai</label><input type="time" name="endTime" className="w-full border rounded-lg p-2" required /></div>
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
-                                        <div><label className="font-semibold block mb-1">Penanggung Jawab</label><input type="text" name="pjName" placeholder="Nama PJ" className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">NIS / NIP PJ</label><input type="text" name="pjNisNip" placeholder="NIS/NIP" className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">No. WA PJ</label><input type="text" name="pjWa" placeholder="08xxxxxxxxxx" className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">Nama PJ</label><input type="text" name="pjName" className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">NIS/NIP PJ</label><input type="text" name="pjNisNip" className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1">No WA PJ</label><input type="text" name="pjWa" className="w-full border rounded-lg p-2" required /></div>
                                     </div>
-                                    <div><label className="font-semibold block mb-1">Keterangan / Keperluan</label><textarea name="notes" rows="2" placeholder="Keperluan peminjaman..." className="w-full border rounded-lg p-2"></textarea></div>
+                                    <div><label className="font-semibold block mb-1">Catatan</label><textarea name="notes" rows="2" className="w-full border rounded-lg p-2"></textarea></div>
                                     <div className="flex justify-end gap-2 pt-3">
-                                        <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-xl font-semibold">Batal</button>
-                                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">Kirim Pengajuan</button>
+                                        <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 bg-slate-200 rounded-xl">Batal</button>
+                                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-xl">Kirim</button>
                                     </div>
                                 </form>
                             </div>
@@ -1431,9 +1112,7 @@
             );
         }
 
-        const rootElement = document.getElementById('root');
-        const root = ReactDOM.createRoot(rootElement);
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
