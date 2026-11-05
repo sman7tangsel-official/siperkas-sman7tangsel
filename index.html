@@ -172,9 +172,7 @@
             const [auditLogs, setAuditLogs] = useState(() => JSON.parse(localStorage.getItem('siperkas_logs')) || []);
             
             // LOGO PERMANEN BERBASIS BASE64 (TERSEMAT OTOMATIS)
-            const DEFAULT_SCHOOL_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="; // Placeholder ringkas, diganti string base64 asli dari logo Anda
-            const [schoolLogo, setSchoolLogo] = useState(() => {
-                return localStorage.getItem('siperkas_logo') || "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
+            const DEFAULT_SCHOOL_LOGO = "";
             });
 
             const [activeTab, setActiveTab] = useState('dashboard');
