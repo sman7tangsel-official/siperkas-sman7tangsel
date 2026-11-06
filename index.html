@@ -311,7 +311,32 @@ const saveBookingToCloud = (newBookingList, targetBooking) => {
                     setRooms(updatedRooms);
                 }
             }, [bookings]);
+// Fungsi pembantu untuk menyimpan booking baru ke Google Sheets & State
+const saveBookingToCloud = (newBookingList, targetBooking) => {
+    setBookings(newBookingList);
+    localStorage.setItem('siperkas_bookings', JSON.stringify(newBookingList));
+    
+    if (!targetBooking) return;
 
+    // Kirim ke Google Apps Script menggunakan parameter URL (GET request trick untuk bypass CORS)
+    const params = new URLSearchParams({
+        action: "saveBooking",
+        id: targetBooking.id || '',
+        org: targetBooking.org || '',
+        activity: targetBooking.activity || '',
+        room: targetBooking.room || '',
+        date: targetBooking.date || '',
+        pic: targetBooking.pic || '',
+        phone: targetBooking.phone || '',
+        status: targetBooking.status || 'Menunggu Persetujuan',
+        fullData: JSON.stringify(targetBooking)
+    });
+
+    fetch(`${GAS_URL}?${params.toString()}`)
+        .then(res => res.json())
+        .then(res => console.log("Berhasil sinkron ke cloud:", res))
+        .catch(err => console.error("Gagal menyimpan ke cloud:", err));
+};
             useEffect(() => { localStorage.setItem('siperkas_rooms_v10', JSON.stringify(rooms)); }, [rooms]);
             useEffect(() => { localStorage.setItem('siperkas_orgs_v10', JSON.stringify(organizations)); }, [organizations]);
             useEffect(() => { localStorage.setItem('siperkas_logs', JSON.stringify(auditLogs)); }, [auditLogs]);
