@@ -25,7 +25,10 @@
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact;
             }
-            .no-print { display: none !important; }
+            /* Sembunyikan total seluruh elemen aplikasi selain modal cetak berita acara */
+            header, nav, .no-print, div[role="main"], main { 
+                display: none !important; 
+            }
             .fixed { 
                 position: static !important; 
                 display: block !important; 
@@ -34,6 +37,8 @@
                 margin: 0 !important;
                 width: 100% !important;
                 height: auto !important;
+                inset: auto !important;
+                overflow: visible !important;
             }
             .print-container { 
                 box-shadow: none !important; 
@@ -42,8 +47,8 @@
                 margin: 0 auto !important; 
                 width: 100% !important; 
                 max-width: 100% !important; 
-                max-height: 100vh !important; 
-                overflow: hidden !important; 
+                max-height: none !important; 
+                overflow: visible !important; 
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
@@ -180,23 +185,23 @@
             
             const [rooms, setRooms] = useState(() => {
                 try {
-                    const saved = localStorage.getItem('siperkas_rooms_v12');
+                    const saved = localStorage.getItem('siperkas_rooms_v14');
                     if (saved) return JSON.parse(saved);
                 } catch (e) {
                     console.error("Reset rooms error", e);
                 }
-                localStorage.setItem('siperkas_rooms_v12', JSON.stringify(INITIAL_ROOMS));
+                localStorage.setItem('siperkas_rooms_v14', JSON.stringify(INITIAL_ROOMS));
                 return INITIAL_ROOMS;
             });
 
             const [organizations, setOrganizations] = useState(() => {
                 try {
-                    const saved = localStorage.getItem('siperkas_orgs_v12');
+                    const saved = localStorage.getItem('siperkas_orgs_v14');
                     if (saved) return JSON.parse(saved);
                 } catch (e) {
                     console.error("Reset orgs error", e);
                 }
-                localStorage.setItem('siperkas_orgs_v12', JSON.stringify(INITIAL_ORGANIZATIONS));
+                localStorage.setItem('siperkas_orgs_v14', JSON.stringify(INITIAL_ORGANIZATIONS));
                 return INITIAL_ORGANIZATIONS;
             });
 
@@ -254,8 +259,8 @@
                 }
             }, [bookings]);
 
-            useEffect(() => { localStorage.setItem('siperkas_rooms_v12', JSON.stringify(rooms)); }, [rooms]);
-            useEffect(() => { localStorage.setItem('siperkas_orgs_v12', JSON.stringify(organizations)); }, [organizations]);
+            useEffect(() => { localStorage.setItem('siperkas_rooms_v14', JSON.stringify(rooms)); }, [rooms]);
+            useEffect(() => { localStorage.setItem('siperkas_orgs_v14', JSON.stringify(organizations)); }, [organizations]);
             useEffect(() => { localStorage.setItem('siperkas_bookings', JSON.stringify(bookings)); }, [bookings]);
             useEffect(() => { localStorage.setItem('siperkas_logs', JSON.stringify(auditLogs)); }, [auditLogs]);
             useEffect(() => { localStorage.setItem('siperkas_logo', schoolLogo); }, [schoolLogo]);
@@ -1021,68 +1026,97 @@
                         </div>
                     )}
 
-                    {/* MODAL BERITA ACARA */}
+                    {/* MODAL BERITA ACARA - DISAMAKAN PERSIS DENGAN FORMAT LOKAL */}
                     {activeModal === 'berita_acara' && selectedBookingDetail && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
                             <div className="bg-white rounded-2xl max-w-3xl w-full p-4 shadow-2xl relative max-h-[95vh] overflow-y-auto print-container text-black">
                                 <div className="text-center border-b-2 border-black pb-1 mb-1.5 flex flex-col items-center gap-0.5">
                                     {schoolLogo && <img src={schoolLogo} alt="Logo" className="w-10 h-10 object-contain" />}
                                     <div>
-                                        <h3 className="text-[10px] font-bold uppercase text-blue-900 leading-tight">Pemerintah Provinsi Banten</h3>
-                                        <h3 className="text-[10px] font-bold uppercase text-blue-900 leading-tight">Dinas Pendidikan dan Kebudayaan</h3>
+                                        <h3 className="text-[10px] font-bold uppercase text-blue-900 leading-tight">DINAS PENDIDIKAN DAN KEBUDAYAAN</h3>
                                         <h2 className="text-sm font-extrabold text-blue-900 leading-tight">SMAN 7 KOTA TANGERANG SELATAN</h2>
                                         <p className="text-[9px] text-blue-900 leading-tight">Jl. Villa Melati Mas Blok J, Pondok Jagung, Kec. Serpong Utara, Kota Tangerang Selatan</p>
                                     </div>
-                                    <h1 className="text-xs font-bold text-black mt-0.5 underline">BERITA ACARA PEMINJAMAN & PENGEMBALIAN RUANG KELAS</h1>
+                                    <h1 className="text-xs font-bold text-black mt-1 underline">BERITA ACARA PEMINJAMAN & PENGEMBALIAN RUANG KELAS</h1>
                                     <p className="text-[10px] font-bold text-black">Nomor Transaksi: {selectedBookingDetail.id}</p>
                                 </div>
 
                                 <div className="space-y-1.5 text-xs text-black">
-                                    <div className="grid grid-cols-2 gap-1 bg-slate-50 p-2 rounded-lg border-2 border-black font-semibold text-[10px]">
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 bg-white p-2 rounded-lg border-2 border-black font-medium text-[10px]">
                                         <div><strong>Organisasi:</strong> {selectedBookingDetail.orgName}</div>
-                                        <div><strong>Kegiatan:</strong> {selectedBookingDetail.activityName}</div>
+                                        <div><strong>Nama Kegiatan:</strong> {selectedBookingDetail.activityName}</div>
                                         <div><strong>Ruangan:</strong> {selectedBookingDetail.roomName}</div>
-                                        <div><strong>Waktu:</strong> {selectedBookingDetail.date} ({selectedBookingDetail.startTime} - {selectedBookingDetail.endTime} WIB)</div>
-                                        <div><strong>Peminjam:</strong> {selectedBookingDetail.applicantName} (NIS: {selectedBookingDetail.applicantNis || '-'})</div>
-                                        <div><strong>PJ:</strong> {selectedBookingDetail.pjName}</div>
-                                        <div><strong>Pendamping:</strong> {selectedBookingDetail.waliKelas}</div>
-                                        <div><strong>Status:</strong> {selectedBookingDetail.status}</div>
+                                        <div><strong>Tanggal:</strong> {selectedBookingDetail.date} ({selectedBookingDetail.startTime} - {selectedBookingDetail.endTime} WIB)</div>
+                                        <div><strong>Peminjam:</strong> {selectedBookingDetail.applicantName} (NIS: {selectedBookingDetail.applicantNis || '12341234'})</div>
+                                        <div><strong>Penanggung Jawab:</strong> {selectedBookingDetail.pjName}</div>
+                                        <div><strong>Pendamping / Wali Kelas:</strong> {selectedBookingDetail.waliKelas}</div>
+                                        <div><strong>Status Akhir:</strong> {selectedBookingDetail.status}</div>
                                     </div>
 
                                     <div className="border-2 border-black p-2 rounded-lg space-y-1">
-                                        <h4 className="font-bold uppercase text-black text-[10px]">Verifikasi Dokumentasi & Kebersihan</h4>
+                                        <h4 className="font-bold uppercase text-black text-[10px]">VERIFIKASI DOKUMENTASI, KELISTRIKAN & KEBERSIHAN RUANGAN</h4>
+                                        <div className="text-[9px] font-medium space-y-0.5 mb-1.5">
+                                            <div>✓ Foto Kondisi Awal & Akhir Ruangan Sesuai Standar (Dilengkapi Timestamp Lokasi & Waktu)</div>
+                                            <div>✓ Perangkat Elektronik & Kelistrikan (AC, Lampu, Proyektor) Dimatikan dengan Benar</div>
+                                            <div>✓ Ruangan Dalam Kondisi Bersih, Rapi, dan Meja/Kursi Sesuai Tata Letak Semula</div>
+                                        </div>
                                         <div className="grid grid-cols-2 gap-2 pt-0.5">
                                             <div className="border-2 border-black p-1 rounded bg-white">
-                                                <p className="font-bold text-[9px] mb-0.5">Foto Kondisi Awal:</p>
+                                                <p className="font-bold text-[9px] mb-0.5">Lampiran Foto Kondisi Awal:</p>
                                                 <div className="grid grid-cols-1 gap-1">
                                                     {safeArray(selectedBookingDetail.beforePhotos).length > 0 ? (
                                                         safeArray(selectedBookingDetail.beforePhotos).map((photoObj, i) => {
                                                             const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
-                                                            return <img key={i} src={imgSrc} alt="Awal" className="w-full h-20 print-photo object-cover border" />;
+                                                            const timeStampText = typeof photoObj === 'object' ? photoObj.timestamp : getFormattedTimestamp();
+                                                            return (
+                                                                <div key={i} className="border border-black bg-black rounded p-0.5">
+                                                                    <img src={imgSrc} alt="Awal" className="w-full h-24 print-photo object-cover" />
+                                                                    <div className="text-white text-[8px] text-center font-mono py-0.5">📍 {timeStampText}</div>
+                                                                </div>
+                                                            );
                                                         })
                                                     ) : (<span className="italic text-[9px]">Belum ada foto awal</span>)}
                                                 </div>
                                             </div>
                                             <div className="border-2 border-black p-1 rounded bg-white">
-                                                <p className="font-bold text-[9px] mb-0.5">Foto Kondisi Akhir:</p>
+                                                <p className="font-bold text-[9px] mb-0.5">Lampiran Foto Kondisi Akhir:</p>
                                                 <div className="grid grid-cols-1 gap-1">
                                                     {safeArray(selectedBookingDetail.afterPhotos).length > 0 ? (
                                                         safeArray(selectedBookingDetail.afterPhotos).map((photoObj, i) => {
                                                             const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
-                                                            return <img key={i} src={imgSrc} alt="Akhir" className="w-full h-20 print-photo object-cover border" />;
+                                                            const timeStampText = typeof photoObj === 'object' ? photoObj.timestamp : getFormattedTimestamp();
+                                                            return (
+                                                                <div key={i} className="border border-black bg-black rounded p-0.5">
+                                                                    <img src={imgSrc} alt="Akhir" className="w-full h-24 print-photo object-cover" />
+                                                                    <div className="text-white text-[8px] text-center font-mono py-0.5">📍 {timeStampText}</div>
+                                                                </div>
+                                                            );
                                                         })
-                                                    ) : (<span className="italic text-[9px]">Belum ada foto akhir</span>)}
+                                                    ) : (<span className="italic text-[9px] text-slate-500">Belum ada foto akhir</span>)}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="pt-1 border-t-2 border-black mt-1 print-signature-area">
+                                        <div className="text-center font-bold text-[10px] uppercase mb-1">LEMBAR PENGESAHAN & TANDA TANGAN PERTANGGUNGJAWABAN</div>
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-center text-[9px]">
-                                            <div className="border-2 border-black p-1 rounded-lg bg-white"><p className="font-bold">Peminjam</p><div className="h-10"></div><p className="font-bold">{selectedBookingDetail.applicantName}</p></div>
-                                            <div className="border-2 border-black p-1 rounded-lg bg-white"><p className="font-bold">Penanggung Jawab</p><div className="h-10"></div><p className="font-bold">{selectedBookingDetail.pjName}</p></div>
-                                            <div className="border-2 border-black p-1 rounded-lg bg-white"><p className="font-bold">Wali Kelas</p><div className="h-10"></div><p className="font-bold">{selectedBookingDetail.waliKelas}</p></div>
-                                            <div className="border-2 border-black p-1 rounded-lg bg-white"><p className="font-bold">Wakasek Sarpras</p><div className="h-10"></div><p className="font-bold">Tri Kurnia Fatmawati</p></div>
+                                            <div className="border-2 border-black p-1.5 rounded-lg bg-white flex flex-col justify-between h-24">
+                                                <p className="font-bold">Peminjam<br/><span className="text-[8px] font-normal">Organisasi / Siswa</span></p>
+                                                <p className="font-bold mt-auto">{selectedBookingDetail.applicantName}<br/><span className="text-[8px] font-normal">NIS. {selectedBookingDetail.applicantNis || '12341234'}</span></p>
+                                            </div>
+                                            <div className="border-2 border-black p-1.5 rounded-lg bg-white flex flex-col justify-between h-24">
+                                                <p className="font-bold">Penanggung Jawab<br/><span className="text-[8px] font-normal">Ketua / Pembina</span></p>
+                                                <p className="font-bold mt-auto">{selectedBookingDetail.pjName}<br/><span className="text-[8px] font-normal">NIP/ID: 199708212025211017</span></p>
+                                            </div>
+                                            <div className="border-2 border-black p-1.5 rounded-lg bg-white flex flex-col justify-between h-24">
+                                                <p className="font-bold">Mengetahui<br/><span className="text-[8px] font-normal">Pendamping / Wali Kelas</span></p>
+                                                <p className="font-bold mt-auto">{selectedBookingDetail.waliKelas}<br/><span className="text-[8px] font-normal">NIP. 198105042011012003</span></p>
+                                            </div>
+                                            <div className="border-2 border-black p-1.5 rounded-lg bg-white flex flex-col justify-between h-24">
+                                                <p className="font-bold">Disetujui<br/><span className="text-[8px] font-normal">Wakasek Sarpras</span></p>
+                                                <p className="font-bold mt-auto">Tri Kurnia Fatmawati, S.Si, M.Pd<br/><span className="text-[8px] font-normal">NIP. 198105042011012003</span></p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1170,7 +1204,7 @@
                                     </div>
                                     <div><label className="font-semibold block mb-1">Catatan</label><textarea name="notes" rows="2" className="w-full border rounded-lg p-2"></textarea></div>
                                     <div className="flex justify-end gap-2 pt-3">
-                                        <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 bg-slate-200 rounded-xl">Batal terikat</button>
+                                        <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 bg-slate-200 rounded-xl">Batal</button>
                                         <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-xl">Kirim</button>
                                     </div>
                                 </form>
