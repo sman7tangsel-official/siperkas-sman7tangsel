@@ -13,11 +13,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
 
-        /* PERBAIKAN CSS CETAK / PRINT SUPAYA TIDAK TERPOTONG DI A4 & F4 */
         @media print {
             @page {
                 size: auto;
-                margin: 8mm 10mm 8mm 10mm; /* Margin tipis presisi */
+                margin: 8mm 10mm 8mm 10mm;
             }
             body { 
                 background: white !important; 
@@ -48,7 +47,7 @@
                 page-break-inside: avoid !important;
             }
             .print-photo {
-                max-height: 110px !important; /* Mencegah foto terlalu tinggi yang mendorong TTD ke luar halaman */
+                max-height: 110px !important;
                 object-fit: cover !important;
             }
             .print-signature-area {
@@ -177,22 +176,45 @@
             const [currentUserRole, setCurrentUserRole] = useState('applicant');
             const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
             
+            // PENGAMAN TRY...CATCH UNTUK MENCEGAH LAYAR PUTIH AKIBAT DATA LOCALSTORAGE KORUP
             const [rooms, setRooms] = useState(() => {
-                const saved = localStorage.getItem('siperkas_rooms_v8');
-                if (saved) return JSON.parse(saved);
-                localStorage.setItem('siperkas_rooms_v8', JSON.stringify(INITIAL_ROOMS));
+                try {
+                    const saved = localStorage.getItem('siperkas_rooms_v9');
+                    if (saved) return JSON.parse(saved);
+                } catch (e) {
+                    console.error("Reset rooms error", e);
+                }
+                localStorage.setItem('siperkas_rooms_v9', JSON.stringify(INITIAL_ROOMS));
                 return INITIAL_ROOMS;
             });
 
             const [organizations, setOrganizations] = useState(() => {
-                const saved = localStorage.getItem('siperkas_orgs_v8');
-                if (saved) return JSON.parse(saved);
-                localStorage.setItem('siperkas_orgs_v8', JSON.stringify(INITIAL_ORGANIZATIONS));
+                try {
+                    const saved = localStorage.getItem('siperkas_orgs_v9');
+                    if (saved) return JSON.parse(saved);
+                } catch (e) {
+                    console.error("Reset orgs error", e);
+                }
+                localStorage.setItem('siperkas_orgs_v9', JSON.stringify(INITIAL_ORGANIZATIONS));
                 return INITIAL_ORGANIZATIONS;
             });
 
-            const [bookings, setBookings] = useState(() => JSON.parse(localStorage.getItem('siperkas_bookings')) || []);
-            const [auditLogs, setAuditLogs] = useState(() => JSON.parse(localStorage.getItem('siperkas_logs')) || []);
+            const [bookings, setBookings] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('siperkas_bookings');
+                    if (saved) return JSON.parse(saved);
+                } catch (e) {}
+                return [];
+            });
+
+            const [auditLogs, setAuditLogs] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('siperkas_logs');
+                    if (saved) return JSON.parse(saved);
+                } catch (e) {}
+                return [];
+            });
+
             const [schoolLogo, setSchoolLogo] = useState(() => localStorage.getItem('siperkas_logo') || '');
 
             const [activeTab, setActiveTab] = useState('dashboard');
@@ -231,8 +253,8 @@
                 }
             }, [bookings]);
 
-            useEffect(() => { localStorage.setItem('siperkas_rooms_v8', JSON.stringify(rooms)); }, [rooms]);
-            useEffect(() => { localStorage.setItem('siperkas_orgs_v8', JSON.stringify(organizations)); }, [organizations]);
+            useEffect(() => { localStorage.setItem('siperkas_rooms_v9', JSON.stringify(rooms)); }, [rooms]);
+            useEffect(() => { localStorage.setItem('siperkas_orgs_v9', JSON.stringify(organizations)); }, [organizations]);
             useEffect(() => { localStorage.setItem('siperkas_bookings', JSON.stringify(bookings)); }, [bookings]);
             useEffect(() => { localStorage.setItem('siperkas_logs', JSON.stringify(auditLogs)); }, [auditLogs]);
             useEffect(() => { localStorage.setItem('siperkas_logo', schoolLogo); }, [schoolLogo]);
@@ -998,7 +1020,7 @@
                         </div>
                     )}
 
-                    {/* MODAL BERITA ACARA (PRESISI SATU HALAMAN PAS) */}
+                    {/* MODAL BERITA ACARA */}
                     {activeModal === 'berita_acara' && selectedBookingDetail && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
                             <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl relative max-h-[95vh] overflow-y-auto print-container text-black">
