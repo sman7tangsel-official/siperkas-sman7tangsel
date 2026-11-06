@@ -197,13 +197,63 @@
             return INITIAL_ORGANIZATIONS;
         });
 
-            const [bookings, setBookings] = useState(() => {
-                try {
-                    const saved = localStorage.getItem('siperkas_bookings');
-                    if (saved) return JSON.parse(saved);
-                } catch (e) {}
-                return [];
-            });
+            // Ganti URL_WEB_APP_ANDA_DISINI dengan URL Web App dari Google Apps Script yang baru saja Anda copy
+const GAS_URL = "https://script.google.com/macros/s/AKfycbypXdkMGCZqnSsFlx3gTjyEACfhkWxuk1N-zGiuNNhD0sFBOU5S8077i63QOu2UzF0H6A/exec"; 
+
+const [bookings, setBookings] = useState(() => {
+    // Ambil data awal dari localStorage sebagai cadangan offline
+    try {
+        const saved = localStorage.getItem('siperkas_bookings');
+        if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [];
+});
+
+// Sinkronisasi otomatis mengambil data dari Google Sheets saat aplikasi dibuka
+React.useEffect(() => {
+    fetch(GAS_URL)
+        .then(res => res.json())
+        .then(result => {
+            if (result.status === "success" && result.data.length > 0) {
+                // Konversi data dari Sheets kembali ke format objek aplikasi
+                const parsedBookings = result.data.map(item => {
+                    try {
+                        return JSON.parse(item.fullData);
+                    } catch(e) {
+                        return {
+                            id: item.id,
+                            org: item.org,
+                            activity: item.activity,
+                            room: item.room,
+                            date: item.date,
+                            pic: item.pic,
+                            phone: item.phone,
+                            status: item.status
+                        };
+                    }
+                });
+                setBookings(parsedBookings);
+            }
+        })
+        .catch(err => console.error("Gagal memuat data cloud:", err));
+}, []);
+
+// Fungsi pembantu untuk menyimpan booking baru ke Google Sheets & State
+const saveBookingToCloud = (newBookingList, targetBooking) => {
+    setBookings(newBookingList);
+    localStorage.setItem('siperkas_bookings', JSON.stringify(newBookingList));
+    
+    // Kirim ke Google Apps Script secara background
+    fetch(GAS_URL, {
+        method: "POST",
+        mode: "no-cors", // Menghindari isu CORS pada GitHub Pages
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: "saveBooking",
+            booking: targetBooking
+        })
+    }).catch(err => console.error("Gagal menyimpan ke cloud:", err));
+};
 
             const [auditLogs, setAuditLogs] = useState(() => {
                 try {
@@ -253,7 +303,6 @@
 
             useEffect(() => { localStorage.setItem('siperkas_rooms_v10', JSON.stringify(rooms)); }, [rooms]);
             useEffect(() => { localStorage.setItem('siperkas_orgs_v10', JSON.stringify(organizations)); }, [organizations]);
-            useEffect(() => { localStorage.setItem('siperkas_bookings', JSON.stringify(bookings)); }, [bookings]);
             useEffect(() => { localStorage.setItem('siperkas_logs', JSON.stringify(auditLogs)); }, [auditLogs]);
             useEffect(() => { localStorage.setItem('siperkas_logo', schoolLogo); }, [schoolLogo]);
 
