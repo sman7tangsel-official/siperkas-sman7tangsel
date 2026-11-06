@@ -198,7 +198,7 @@
         });
 
             // Ganti URL_WEB_APP_ANDA_DISINI dengan URL Web App dari Google Apps Script yang baru saja Anda copy
-const GAS_URL = "https://script.google.com/macros/s/AKfycbypXdkMGCZqnSsFlx3gTjyEACfhkWxuk1N-zGiuNNhD0sFBOU5S8077i63QOu2UzF0H6A/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbynerOUCLDV_zMM65rW0xw77mP0SBmc-hhXGIN5QkmZCyEGTYU_Bc1xN6bWl5Zv8x1ZGg/exec"; 
 
 const [bookings, setBookings] = useState(() => {
     // Ambil data awal dari localStorage sebagai cadangan offline
@@ -239,20 +239,31 @@ React.useEffect(() => {
 }, []);
 
 // Fungsi pembantu untuk menyimpan booking baru ke Google Sheets & State
+// Fungsi pembantu untuk menyimpan booking baru ke Google Sheets & State
 const saveBookingToCloud = (newBookingList, targetBooking) => {
     setBookings(newBookingList);
     localStorage.setItem('siperkas_bookings', JSON.stringify(newBookingList));
     
-    // Kirim ke Google Apps Script secara background
-    fetch(GAS_URL, {
-        method: "POST",
-        mode: "no-cors", // Menghindari isu CORS pada GitHub Pages
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            action: "saveBooking",
-            booking: targetBooking
-        })
-    }).catch(err => console.error("Gagal menyimpan ke cloud:", err));
+    if (!targetBooking) return;
+
+    // Kirim ke Google Apps Script menggunakan parameter URL (GET request trick untuk bypass CORS)
+    const params = new URLSearchParams({
+        action: "saveBooking",
+        id: targetBooking.id || '',
+        org: targetBooking.org || '',
+        activity: targetBooking.activity || '',
+        room: targetBooking.room || '',
+        date: targetBooking.date || '',
+        pic: targetBooking.pic || '',
+        phone: targetBooking.phone || '',
+        status: targetBooking.status || 'Menunggu Persetujuan',
+        fullData: JSON.stringify(targetBooking)
+    });
+
+    fetch(`${GAS_URL}?${params.toString()}`)
+        .then(res => res.json())
+        .then(res => console.log("Berhasil sinkron ke cloud:", res))
+        .catch(err => console.error("Gagal menyimpan ke cloud:", err));
 };
 
             const [auditLogs, setAuditLogs] = useState(() => {
