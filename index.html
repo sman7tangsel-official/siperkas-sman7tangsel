@@ -179,7 +179,7 @@
             // PENGAMAN TRY...CATCH UNTUK MENCEGAH LAYAR PUTIH AKIBAT DATA LOCALSTORAGE
            const [rooms, setRooms] = useState(() => {
             try {
-                const saved = localStorage.getItem('siperkas_rooms_master');
+                const saved = localStorage.getItem('siperkas_rooms_master_v2');
                 if (saved) return JSON.parse(saved);
             } catch (e) {
                 console.error("Reset rooms error", e);
@@ -189,7 +189,7 @@
 
         const [organizations, setOrganizations] = useState(() => {
             try {
-                const saved = localStorage.getItem('siperkas_orgs_master');
+                const saved = localStorage.getItem('siperkas_orgs_master_v2');
                 if (saved) return JSON.parse(saved);
             } catch (e) {
                 console.error("Reset orgs error", e);
@@ -310,8 +310,8 @@ const saveBookingToCloud = (newBookingList, targetBooking) => {
         .then(res => console.log("Berhasil sinkron ke cloud:", res))
         .catch(err => console.error("Gagal menyimpan ke cloud:", err));
 };
-            useEffect(() => { localStorage.setItem('siperkas_rooms_v10', JSON.stringify(rooms)); }, [rooms]);
-            useEffect(() => { localStorage.setItem('siperkas_orgs_v10', JSON.stringify(organizations)); }, [organizations]);
+            useEffect(() => { localStorage.setItem('siperkas_rooms_v2', JSON.stringify(rooms)); }, [rooms]);
+            useEffect(() => { localStorage.setItem('siperkas_orgs_v2', JSON.stringify(organizations)); }, [organizations]);
             useEffect(() => { localStorage.setItem('siperkas_logs', JSON.stringify(auditLogs)); }, [auditLogs]);
             useEffect(() => { localStorage.setItem('siperkas_logo', schoolLogo); }, [schoolLogo]);
 
