@@ -10,66 +10,46 @@
     <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-       @media print {
-    @page {
-        size: A4 portrait;
-        margin: 5mm !important;
-    }
-    body {
-        background: white !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        font-size: 9.5px !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-    .no-print {
-        display: none !important;
-    }
-    .fixed {
-        position: static !important;
-        display: block !important;
-        background: white !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        width: 100% !important;
-        height: auto !important;
-    }
-    .print-container {
-        box-shadow: none !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 auto !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow: visible !important;
-    }
-    .print-photo {
-        max-height: 95px !important;
-        object-fit: cover !important;
-    }
-    .print-signature-area {
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-    }
-}
-<style>
-        /* CSS Tambahan khusus untuk merapikan cetakan agar pas 1 halaman */
-        @media print {
-            body {
-                font-size: 10px; /* Mengecilkan sedikit ukuran font secara keseluruhan */
-            }
-            /* Menyembunyikan elemen lain saat dicetak */
-            .no-print {
-                display: none !important;
-            }
-            /* Mengatur margin kertas cetak */
-            @page {
-                size: A4 portrait;
-                margin: 10mm;
-            }
+    @media print {
+        @page {
+            size: A4 portrait;
+            margin: 5mm !important;
         }
-    </style>
+        body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-size: 9px !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .no-print {
+            display: none !important;
+        }
+        /* Memaksa kontainer modal cetak menempel rata atas */
+        .fixed, [class*="fixed"] {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .print-container {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        .print-signature-area {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+    }
+</style>
 </head>
 <body class="bg-slate-50 text-slate-800">
     <div id="root"></div>
