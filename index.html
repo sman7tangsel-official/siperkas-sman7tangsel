@@ -1118,7 +1118,7 @@ const saveBookingToCloud = (newBookingList, targetBooking) => {
                 ) : (<span className="italic text-[10px]">Belum ada foto awal</span>)}
             </div>
         </div>
-        <div className="border-2 border-black p-1.5 rounded-lg bg-white">
+       <div className="border-2 border-black p-1.5 rounded-lg bg-white">
             <p className="font-bold text-[10px] mb-1">Lampiran Foto Kondisi Akhir:</p>
             <div className="grid grid-cols-1 gap-2">
                 {safeArray(selectedBookingDetail.afterPhotos).length > 0 ? (
@@ -1126,10 +1126,11 @@ const saveBookingToCloud = (newBookingList, targetBooking) => {
                         const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
                         return <img key={i} src={imgSrc} alt="Akhir" className="w-full h-32 object-cover rounded border border-gray-300" />
                     })
-                ) : (<span className="italic text-[10px]">Belum ada foto akhir</span>)
+                ) : (<span className="italic text-[10px]">Belum ada foto akhir</span>)}
             </div>
         </div>
     </div>
+</div>
 
     <div className="pt-2 border-t-2 border-black mt-2 print-signature-area">
         <p className="font-bold text-center text-[10px] mb-1">LEMBAR PENGESAHAN & TANDA TANGAN PERTANGGUNGJAWABAN</p>
