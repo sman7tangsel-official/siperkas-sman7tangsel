@@ -1132,7 +1132,40 @@ const saveBookingToCloud = (newBookingList, targetBooking) => {
                                         </div>
                                     </div>
 
-                                    <div className="pt-2 border-t-2 border-black mt-2 print-signature-area">
+                                    <div className="border-2 border-black p-2.5 rounded-xl space-y-1.5">
+    <h4 className="font-bold uppercase text-black text-[11px]">VERIFIKASI DOKUMENTASI, KELISTRIKAN & KEBERSIHAN RUANGAN</h4>
+    <div className="text-[10px] space-y-0.5 text-black">
+        <p>✓ Foto Kondisi Awal & Akhir Ruangan Sesuai Standar (Dilengkapi Timestamp Lokasi & Waktu)</p>
+        <p>✓ Perangkat Elektronik & Kelistrikan (AC, Lampu, Proyektor) Dimatikan dengan Benar</p>
+        <p>✓ Ruangan Dalam Kondisi Bersih, Rapi, dan Meja/Kursi Sesuai Tata Letak Semula</p>
+    </div>
+    <div className="grid grid-cols-2 gap-3 pt-1">
+        <div className="border-2 border-black p-1.5 rounded-lg bg-white">
+            <p className="font-bold text-[10px] mb-1">Lampiran Foto Kondisi Awal:</p>
+            <div className="grid grid-cols-1 gap-1">
+                {safeArray(selectedBookingDetail.beforePhotos).length > 0 ? (
+                    safeArray(selectedBookingDetail.beforePhotos).map((photoObj, i) => {
+                        const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
+                        return <img key={i} src={imgSrc} alt="Awal" className="w-full h-32 object-cover rounded border border-gray-300" />
+                    })
+                ) : (<span className="italic text-[10px]">Belum ada foto awal</span>)}
+            </div>
+        </div>
+        <div className="border-2 border-black p-1.5 rounded-lg bg-white">
+            <p className="font-bold text-[10px] mb-1">Lampiran Foto Kondisi Akhir:</p>
+            <div className="grid grid-cols-1 gap-2">
+                {safeArray(selectedBookingDetail.afterPhotos).length > 0 ? (
+                    safeArray(selectedBookingDetail.afterPhotos).map((photoObj, i) => {
+                        const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
+                        return <img key={i} src={imgSrc} alt="Akhir" className="w-full h-32 object-cover rounded border border-gray-300" />
+                    })
+                ) : (<span className="italic text-[10px]">Belum ada foto akhir</span>)}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div className="pt-2 border-t-2 border-black mt-2 print-signature-area">
     <p className="font-bold text-center text-[10px] mb-1">LEMBAR PENGESAHAN & TANDA TANGAN PERTANGGUNGJAWABAN</p>
     <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
         <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
@@ -1152,7 +1185,7 @@ const saveBookingToCloud = (newBookingList, targetBooking) => {
             </div>
             <div className="mt-auto">
                 <p className="font-bold underline">{selectedBookingDetail.pjName || '-'}</p>
-                <p className="text-[9px]">NIP/ID: {selectedBookingDetail.nipPj || '-'}</p>
+                <p className="text-[9px]">NIP/ID: {selectedBookingDetail.nipPj || '199708212025211017'}</p>
             </div>
         </div>
         <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
@@ -1161,8 +1194,8 @@ const saveBookingToCloud = (newBookingList, targetBooking) => {
                 <p className="text-[9px] text-gray-600">Pendamping / Wali Kelas</p>
             </div>
             <div className="mt-auto">
-                <p className="font-bold underline">{selectedBookingDetail.waliKelas || '-'}</p>
-                <p className="text-[9px]">NIP: {selectedBookingDetail.nipWali || '-'}</p>
+                <p className="font-bold underline">{selectedBookingDetail.waliKelas || 'Tri Kurnia Fatmawati, S.Si, M.Pd'}</p>
+                <p className="text-[9px]">NIP: {selectedBookingDetail.nipWali || '198105042011012003'}</p>
             </div>
         </div>
         <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
