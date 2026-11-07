@@ -55,6 +55,22 @@
                 break-inside: avoid !important;
             }
         }
+<style>
+        /* CSS Tambahan khusus untuk merapikan cetakan agar pas 1 halaman */
+        @media print {
+            body {
+                font-size: 10px; /* Mengecilkan sedikit ukuran font secara keseluruhan */
+            }
+            /* Menyembunyikan elemen lain saat dicetak */
+            .no-print {
+                display: none !important;
+            }
+            /* Mengatur margin kertas cetak */
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
