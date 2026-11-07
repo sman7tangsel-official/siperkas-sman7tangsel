@@ -1099,6 +1099,7 @@ const saveBookingToCloud = (newBookingList, targetBooking) => {
                                     </div>
 
                                
+    <>
     <h4 className="font-bold uppercase text-black text-[11px]">VERIFIKASI DOKUMENTASI, KELISTRIKAN & KEBERSIHAN RUANGAN</h4>
     <div className="text-[10px] space-y-0.5 text-black">
         <p>✓ Foto Kondisi Awal & Akhir Ruangan Sesuai Standar (Dilengkapi Timestamp Lokasi & Waktu)</p>
@@ -1129,53 +1130,52 @@ const saveBookingToCloud = (newBookingList, targetBooking) => {
             </div>
         </div>
     </div>
-</div>
 
-<div className="pt-2 border-t-2 border-black mt-2 print-signature-area">
-    <p className="font-bold text-center text-[10px] mb-1">LEMBAR PENGESAHAN & TANDA TANGAN PERTANGGUNGJAWABAN</p>
-    <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
-        <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
-            <div>
-                <p className="font-bold">Peminjam</p>
-                <p className="text-[9px] text-gray-600">Organisasi / Siswa</p>
+    <div className="pt-2 border-t-2 border-black mt-2 print-signature-area">
+        <p className="font-bold text-center text-[10px] mb-1">LEMBAR PENGESAHAN & TANDA TANGAN PERTANGGUNGJAWABAN</p>
+        <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
+            <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
+                <div>
+                    <p className="font-bold">Peminjam</p>
+                    <p className="text-[9px] text-gray-600">Organisasi / Siswa</p>
+                </div>
+                <div className="mt-auto">
+                    <p className="font-bold underline">{selectedBookingDetail.applicantName || '-'}</p>
+                    <p className="text-[9px]">NIS: {selectedBookingDetail.nis || '-'}</p>
+                </div>
             </div>
-            <div className="mt-auto">
-                <p className="font-bold underline">{selectedBookingDetail.applicantName || '-'}</p>
-                <p className="text-[9px]">NIS: {selectedBookingDetail.nis || '-'}</p>
+            <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
+                <div>
+                    <p className="font-bold">Penanggung Jawab</p>
+                    <p className="text-[9px] text-gray-600">Ketua / Pembina</p>
+                </div>
+                <div className="mt-auto">
+                    <p className="font-bold underline">{selectedBookingDetail.pjName || '-'}</p>
+                    <p className="text-[9px]">NIP/ID: {selectedBookingDetail.nipPj || '199708212025211017'}</p>
+                </div>
             </div>
-        </div>
-        <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
-            <div>
-                <p className="font-bold">Penanggung Jawab</p>
-                <p className="text-[9px] text-gray-600">Ketua / Pembina</p>
+            <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
+                <div>
+                    <p className="font-bold">Mengetahui</p>
+                    <p className="text-[9px] text-gray-600">Pendamping / Wali Kelas</p>
+                </div>
+                <div className="mt-auto">
+                    <p className="font-bold underline">{selectedBookingDetail.waliKelas || 'Tri Kurnia Fatmawati, S.Si, M.Pd'}</p>
+                    <p className="text-[9px]">NIP: {selectedBookingDetail.nipWali || '198105042011012003'}</p>
+                </div>
             </div>
-            <div className="mt-auto">
-                <p className="font-bold underline">{selectedBookingDetail.pjName || '-'}</p>
-                <p className="text-[9px]">NIP/ID: {selectedBookingDetail.nipPj || '199708212025211017'}</p>
-            </div>
-        </div>
-        <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
-            <div>
-                <p className="font-bold">Mengetahui</p>
-                <p className="text-[9px] text-gray-600">Pendamping / Wali Kelas</p>
-            </div>
-            <div className="mt-auto">
-                <p className="font-bold underline">{selectedBookingDetail.waliKelas || 'Tri Kurnia Fatmawati, S.Si, M.Pd'}</p>
-                <p className="text-[9px]">NIP: {selectedBookingDetail.nipWali || '198105042011012003'}</p>
-            </div>
-        </div>
-        <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
-            <div>
-                <p className="font-bold">Disetujui</p>
-                <p className="text-[9px] text-gray-600">Wakasek Sarpras</p>
-            </div>
-            <div className="mt-auto">
-                <p className="font-bold underline">Tri Kurnia Fatmawati, S.Si, M.Pd</p>
-                <p className="text-[9px]">NIP. 198105042011012003</p>
+            <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
+                <div>
+                    <p className="font-bold">Disetujui</p>
+                    <p className="text-[9px] text-gray-600">Wakasek Sarpras</p>
+                </div>
+                <div className="mt-auto">
+                    <p className="font-bold underline">Tri Kurnia Fatmawati, S.Si, M.Pd</p>
+                    <p className="text-[9px]">NIP. 198105042011012003</p>
+                </div>
             </div>
         </div>
     </div>
-</div>
                                 </div>
 
                                 <div className="mt-4 flex justify-end gap-3 pt-3 border-t-2 border-black no-print">
