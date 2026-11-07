@@ -10,51 +10,49 @@
     <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-
-        @media print {
-            @page {
-                size: auto;
-                margin: 8mm 10mm 8mm 10mm;
-            }
-            body { 
-                background: white !important; 
-                margin: 0 !important; 
-                padding: 0 !important; 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact;
-            }
-            .no-print { display: none !important; }
-            .fixed { 
-                position: static !important; 
-                display: block !important; 
-                background: white !important; 
-                padding: 0 !important; 
-                margin: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-            }
-            .print-container { 
-                box-shadow: none !important; 
-                border: none !important; 
-                padding: 0 !important; 
-                margin: 0 auto !important; 
-                width: 100% !important; 
-                max-width: 100% !important; 
-                max-height: none !important; 
-                overflow: visible !important; 
-                page-break-inside: avoid !important;
-            }
-            .print-photo {
-                max-height: 110px !important;
-                object-fit: cover !important;
-            }
-            .print-signature-area {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-        }
+       @media print {
+    @page {
+        size: A4 portrait;
+        margin: 5mm !important;
+    }
+    body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 9.5px !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .fixed {
+        position: static !important;
+        display: block !important;
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+    .print-container {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+    }
+    .print-photo {
+        max-height: 95px !important;
+        object-fit: cover !important;
+    }
+    .print-signature-area {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+}
 <style>
         /* CSS Tambahan khusus untuk merapikan cetakan agar pas 1 halaman */
         @media print {
