@@ -186,7 +186,7 @@
                 return INITIAL_ORGANIZATIONS;
             });
 
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbwxJzpaI4tVmAMBJ0EpMzuT4G1CiC2szy1-kmf6hSxAocMmYVmQbkLgpmqUe-ENgceEzw/exec"; 
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbzaYplSf0UlYUtxfAx5LPt8UjwtwQGzxrZMsjaMVCr4kGyWtgxtA1oi7nocDdxCAlerbQ/exec"; 
 
             const [bookings, setBookings] = useState(() => {
                 try {
@@ -337,18 +337,25 @@
             };
 
             const handleDeleteBooking = (bookingId) => {
-                if (window.confirm(`Apakah Anda yakin ingin menghapus data peminjaman ID ${bookingId}?`)) {
-                    const filtered = bookings.filter(b => b.id !== bookingId);
-                    setBookings(filtered);
-                    localStorage.setItem('siperkas_bookings', JSON.stringify(filtered));
-                    logActivity(`Menghapus data peminjaman ${bookingId}`);
-                    showToast(`Peminjaman ${bookingId} berhasil dihapus!`);
-                    if (selectedBookingDetail && selectedBookingDetail.id === bookingId) {
-                        setSelectedBookingDetail(null);
-                        setActiveModal(null);
-                    }
-                }
-            };
+    if (window.confirm(`Apakah Anda yakin ingin menghapus data peminjaman ID ${bookingId}?`)) {
+        const filtered = bookings.filter(b => b.id !== bookingId);
+        setBookings(filtered);
+        localStorage.setItem('siperkas_bookings', JSON.stringify(filtered));
+        
+        // Kirim perintah hapus ke Google Spreadsheet
+        fetch(`${GAS_URL}?action=deleteBooking&id=${bookingId}`)
+            .then(res => res.json())
+            .then(res => console.log("Data terhapus dari cloud:", res))
+            .catch(err => console.error("Gagal menghapus dari cloud:", err));
+
+        logActivity(`Menghapus data peminjaman ${bookingId}`);
+        showToast(`Peminjaman ${bookingId} berhasil dihapus!`);
+        if (selectedBookingDetail && selectedBookingDetail.id === bookingId) {
+            setSelectedBookingDetail(null);
+            setActiveModal(null);
+        }
+    }
+};
 
             const filteredBookings = useMemo(() => {
                 if (!searchQuery.trim()) return bookings;
