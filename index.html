@@ -54,7 +54,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
 
         const Icon = ({ name, className = "w-5 h-5", ...props }) => {
             useEffect(() => {
@@ -271,7 +271,7 @@
                 }
             }, [bookings]);
 
-            // Simpan peminjaman baru ke Google Sheets & LocalStorage
+            // Fungsi simpan data ke Google Spreadsheet dengan header terperinci
             const saveBookingToCloud = (newBookingList, targetBooking) => {
                 setBookings(newBookingList);
                 localStorage.setItem('siperkas_bookings', JSON.stringify(newBookingList));
@@ -285,15 +285,23 @@
                     activity: targetBooking.activityName || targetBooking.activity || '',
                     room: targetBooking.roomName || targetBooking.room || '',
                     date: targetBooking.date || '',
-                    pic: targetBooking.pjName || targetBooking.pic || '',
-                    phone: targetBooking.pjWa || targetBooking.phone || '',
+                    startTime: targetBooking.startTime || '',
+                    endTime: targetBooking.endTime || '',
+                    applicantName: targetBooking.applicantName || '',
+                    applicantNis: targetBooking.applicantNis || '',
+                    applicantClass: targetBooking.applicantClass || '',
+                    applicantWa: targetBooking.applicantWa || '',
+                    pjName: targetBooking.pjName || '',
+                    pjNisNip: targetBooking.pjNisNip || '',
+                    pjWa: targetBooking.pjWa || '',
                     status: targetBooking.status || 'Menunggu Persetujuan',
+                    notes: targetBooking.notes || '',
                     fullData: JSON.stringify(targetBooking)
                 });
 
                 fetch(`${GAS_URL}?${params.toString()}`)
                     .then(res => res.json())
-                    .then(res => console.log("Berhasil sinkron ke cloud:", res))
+                    .then(res => console.log("Berhasil sinkron ke cloud dengan header terperinci:", res))
                     .catch(err => console.error("Gagal menyimpan ke cloud:", err));
             };
 
@@ -735,42 +743,87 @@
                                         </div>
                                     </div>
 
-                                    <div className="pt-2 border-t space-y-2">
+                                    <div className="pt-2 border-t space-y-3">
                                         <div>
-                                            <label className="block text-[11px] font-semibold mb-1 text-blue-700">➕ Tambah Foto Awal (Otomatis Ubah Status ke "Sedang Digunakan")</label>
-                                            <input type="file" accept="image/*" multiple onChange={(e) => {
-                                                const files = Array.from(e.target.files);
-                                                if (files.length > 0) {
-                                                    Promise.all(files.map(file => new Promise((resolve) => {
-                                                        const reader = new FileReader();
-                                                        reader.onloadend = () => resolve({ url: reader.result, timestamp: getFormattedTimestamp() });
-                                                        reader.readAsDataURL(file);
-                                                    }))).then(newPhotoObjs => {
-                                                        const combined = [...safeArray(selectedBookingDetail.beforePhotos), ...newPhotoObjs];
-                                                        const updated = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, beforePhotos: combined, status: 'Sedang Digunakan'} : b);
-                                                        saveBookingToCloud(updated, {...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
-                                                        setSelectedBookingDetail({...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
-                                                        showToast('Foto awal diunggah & Status menjadi "Sedang Digunakan".');
-                                                    });
-                                                }
-                                            }} className="text-[10px] w-full text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700" />
+                                            <label className="block text-[11px] font-semibold mb-1 text-blue-700">➕ Tambah Foto Kondisi Awal (Bukti Dukung)</label>
+                                            <div className="flex gap-2">
+                                                <label className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
+                                                    📸 Buka Kamera Langsung
+                                                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => {
+                                                        const files = Array.from(e.target.files);
+                                                        if (files.length > 0) {
+                                                            Promise.all(files.map(file => new Promise((resolve) => {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => resolve({ url: reader.result, timestamp: getFormattedTimestamp() });
+                                                                reader.readAsDataURL(file);
+                                                            }))).then(newPhotoObjs => {
+                                                                const combined = [...safeArray(selectedBookingDetail.beforePhotos), ...newPhotoObjs];
+                                                                const updated = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, beforePhotos: combined, status: 'Sedang Digunakan'} : b);
+                                                                saveBookingToCloud(updated, {...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
+                                                                setSelectedBookingDetail({...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
+                                                                showToast('Foto kamera awal diunggah & Status menjadi "Sedang Digunakan".');
+                                                            });
+                                                        }
+                                                    }} />
+                                                </label>
+                                                <label className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
+                                                    📁 Pilih dari Galeri
+                                                    <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
+                                                        const files = Array.from(e.target.files);
+                                                        if (files.length > 0) {
+                                                            Promise.all(files.map(file => new Promise((resolve) => {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => resolve({ url: reader.result, timestamp: getFormattedTimestamp() });
+                                                                reader.readAsDataURL(file);
+                                                            }))).then(newPhotoObjs => {
+                                                                const combined = [...safeArray(selectedBookingDetail.beforePhotos), ...newPhotoObjs];
+                                                                const updated = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, beforePhotos: combined, status: 'Sedang Digunakan'} : b);
+                                                                saveBookingToCloud(updated, {...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
+                                                                setSelectedBookingDetail({...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
+                                                                showToast('Foto galeri awal diunggah & Status menjadi "Sedang Digunakan".');
+                                                            });
+                                                        }
+                                                    }} />
+                                                </label>
+                                            </div>
                                         </div>
 
                                         <div>
-                                            <label className="block text-[11px] font-semibold mb-1 text-emerald-700">➕ Tambah Foto Akhir (Checklist Verifikasi & Status "Selesai")</label>
-                                            <input type="file" accept="image/*" multiple onChange={(e) => {
-                                                const files = Array.from(e.target.files);
-                                                if (files.length > 0) {
-                                                    Promise.all(files.map(file => new Promise((resolve) => {
-                                                        const reader = new FileReader();
-                                                        reader.onloadend = () => resolve({ url: reader.result, timestamp: getFormattedTimestamp() });
-                                                        reader.readAsDataURL(file);
-                                                    }))).then(newPhotoObjs => {
-                                                        setPendingAfterPhotos(newPhotoObjs);
-                                                        setActiveModal('checklist_verification');
-                                                    });
-                                                }
-                                            }} className="text-[10px] w-full text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-emerald-50 file:text-emerald-700" />
+                                            <label className="block text-[11px] font-semibold mb-1 text-emerald-700">➕ Tambah Foto Kondisi Akhir & Checklist</label>
+                                            <div className="flex gap-2">
+                                                <label className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
+                                                    📸 Buka Kamera Langsung
+                                                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => {
+                                                        const files = Array.from(e.target.files);
+                                                        if (files.length > 0) {
+                                                            Promise.all(files.map(file => new Promise((resolve) => {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => resolve({ url: reader.result, timestamp: getFormattedTimestamp() });
+                                                                reader.readAsDataURL(file);
+                                                            }))).then(newPhotoObjs => {
+                                                                setPendingAfterPhotos(newPhotoObjs);
+                                                                setActiveModal('checklist_verification');
+                                                            });
+                                                        }
+                                                    }} />
+                                                </label>
+                                                <label className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
+                                                    📁 Pilih dari Galeri
+                                                    <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
+                                                        const files = Array.from(e.target.files);
+                                                        if (files.length > 0) {
+                                                            Promise.all(files.map(file => new Promise((resolve) => {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => resolve({ url: reader.result, timestamp: getFormattedTimestamp() });
+                                                                reader.readAsDataURL(file);
+                                                            }))).then(newPhotoObjs => {
+                                                                setPendingAfterPhotos(newPhotoObjs);
+                                                                setActiveModal('checklist_verification');
+                                                            });
+                                                        }
+                                                    }} />
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1110,7 +1163,13 @@
                                                     {safeArray(selectedBookingDetail.beforePhotos).length > 0 ? (
                                                         safeArray(selectedBookingDetail.beforePhotos).map((photoObj, i) => {
                                                             const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
-                                                            return <img key={i} src={imgSrc} alt="Awal" className="w-full h-32 object-cover rounded border border-gray-300" />
+                                                            const timeStampText = typeof photoObj === 'object' ? photoObj.timestamp : getFormattedTimestamp();
+                                                            return (
+                                                                <div key={i} className="relative border rounded bg-white overflow-hidden shadow">
+                                                                    <img src={imgSrc} alt="Awal" className="w-full h-32 object-cover" />
+                                                                    <div className="bg-black/75 text-white text-[9px] p-1 font-mono text-center">📍 {timeStampText}</div>
+                                                                </div>
+                                                            );
                                                         })
                                                     ) : (<span className="italic text-[10px]">Belum ada foto awal</span>)}
                                                 </div>
@@ -1121,7 +1180,13 @@
                                                     {safeArray(selectedBookingDetail.afterPhotos).length > 0 ? (
                                                         safeArray(selectedBookingDetail.afterPhotos).map((photoObj, i) => {
                                                             const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
-                                                            return <img key={i} src={imgSrc} alt="Akhir" className="w-full h-32 object-cover rounded border border-gray-300" />
+                                                            const timeStampText = typeof photoObj === 'object' ? photoObj.timestamp : getFormattedTimestamp();
+                                                            return (
+                                                                <div key={i} className="relative border rounded bg-white overflow-hidden shadow">
+                                                                    <img src={imgSrc} alt="Akhir" className="w-full h-32 object-cover" />
+                                                                    <div className="bg-black/75 text-white text-[9px] p-1 font-mono text-center">📍 {timeStampText}</div>
+                                                                </div>
+                                                            );
                                                         })
                                                     ) : (<span className="italic text-[10px]">Belum ada foto akhir</span>)}
                                                 </div>
