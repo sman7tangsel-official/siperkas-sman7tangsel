@@ -438,11 +438,11 @@
                 );
             }, [bookings, searchQuery]);
 
-            const stats = useMemo(() => ({
+           const stats = useMemo(() => ({
                 total: bookings.length,
                 pending: bookings.filter(b => b.status === 'Menunggu Persetujuan' || b.status === 'Proses Pengajuan').length,
                 approved: bookings.filter(b => b.status === 'Disetujui').length,
-                active: bookings.filter(b => b.status === 'Sedang Digunakan' && safeArray(b.beforePhotos).length > 0).length,
+                active: bookings.filter(b => b.status === 'Sedang Digunakan').length,
                 completed: bookings.filter(b => b.status === 'Selesai').length,
                 missingDocs: bookings.filter(b => b.status === 'Sedang Digunakan' && safeArray(b.beforePhotos).length === 0).length
             }), [bookings]);
