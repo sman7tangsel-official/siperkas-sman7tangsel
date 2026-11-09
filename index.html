@@ -164,7 +164,6 @@
             return `${dateStr}, ${timeStr} | SMAN 7 Kota Tangerang Selatan`;
         };
 
-        // Fungsi kompresi gambar agar muat dalam sel Google Sheets
         const compressImage = (base64Str, maxWidth = 800, quality = 0.5) => {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -238,7 +237,7 @@
                                     if (parsedFull.afterPhotos) cloudAfter = safeArray(parsedFull.afterPhotos);
                                 }
                                 
-                                let derivedStatus = item.status || (parsedFull && parsedFull.status) || 'Menunggu Persetujuan';
+                                let derivedStatus = (parsedFull && parsedFull.status) ? parsedFull.status : (item.status || 'Menunggu Persetujuan');
                                 if (cloudBefore.length > 0 && derivedStatus === 'Menunggu Persetujuan') {
                                     derivedStatus = 'Sedang Digunakan';
                                 }
@@ -269,17 +268,16 @@
                                 const merged = parsedBookings.map(cloudItem => {
                                     const localMatch = prev.find(p => p.id === cloudItem.id);
                                     if (localMatch) {
+                                        const prioritizedStatus = localMatch.status !== 'Menunggu Persetujuan' ? localMatch.status : cloudItem.status;
                                         const localBeforeCount = safeArray(localMatch.beforePhotos).length;
                                         const cloudBeforeCount = safeArray(cloudItem.beforePhotos).length;
                                         
-                                        if (localBeforeCount >= cloudBeforeCount) {
-                                            return {
-                                                ...cloudItem,
-                                                status: localMatch.status || cloudItem.status,
-                                                beforePhotos: localMatch.beforePhotos.length > 0 ? localMatch.beforePhotos : cloudItem.beforePhotos,
-                                                afterPhotos: localMatch.afterPhotos.length > 0 ? localMatch.afterPhotos : cloudItem.afterPhotos
-                                            };
-                                        }
+                                        return {
+                                            ...cloudItem,
+                                            status: prioritizedStatus,
+                                            beforePhotos: localBeforeCount >= cloudBeforeCount ? localMatch.beforePhotos : cloudItem.beforePhotos,
+                                            afterPhotos: safeArray(localMatch.afterPhotos).length >= safeArray(cloudItem.afterPhotos).length ? localMatch.afterPhotos : cloudItem.afterPhotos
+                                        };
                                     }
                                     return cloudItem;
                                 });
