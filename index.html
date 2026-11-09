@@ -184,7 +184,7 @@
                 return INITIAL_ORGANIZATIONS;
             });
 
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbzz6qIJicpdXEOzKf62vGfYiykI01SxbhcEnvsGOH7PzLD1IW5kCHBpokWYZ1NvmBymQg/exec"; 
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbxhcwENEqW8nKGaPRawKLRCusayIax1mMGg1QaX12nJVmZ4-MeiWXctsx8314SQAlTfDg/exec"; 
 
             const [bookings, setBookings] = useState(() => {
                 try {
@@ -327,47 +327,53 @@
             }, [bookings]);
 
             const saveBookingToCloud = (newBookingList, targetBooking) => {
-                setBookings(newBookingList);
-                localStorage.setItem('siperkas_bookings', JSON.stringify(newBookingList));
-                
-                if (targetBooking) {
-                    setSelectedBookingDetail(targetBooking);
-                }
+    setBookings(newBookingList);
+    localStorage.setItem('siperkas_bookings', JSON.stringify(newBookingList));
+    
+    if (targetBooking) {
+        setSelectedBookingDetail(targetBooking);
+    }
 
-                if (!targetBooking) return;
+    if (!targetBooking) return;
 
-                const beforeCount = safeArray(targetBooking.beforePhotos).length;
-                const afterCount = safeArray(targetBooking.afterPhotos).length;
-                const photoSummary = `Foto Awal: ${beforeCount} file | Foto Akhir: ${afterCount} file`;
+    const beforeCount = safeArray(targetBooking.beforePhotos).length;
+    const afterCount = safeArray(targetBooking.afterPhotos).length;
+    const photoSummary = `Foto Awal: ${beforeCount} file | Foto Akhir: ${afterCount} file`;
 
-                const params = new URLSearchParams({
-                    action: "saveBooking",
-                    id: targetBooking.id || '',
-                    org: targetBooking.orgName || targetBooking.org || '',
-                    activity: targetBooking.activityName || targetBooking.activity || '',
-                    room: targetBooking.roomName || targetBooking.room || '',
-                    date: targetBooking.date || '',
-                    startTime: targetBooking.startTime || '',
-                    endTime: targetBooking.endTime || '',
-                    applicantName: targetBooking.applicantName || '',
-                    applicantNis: targetBooking.applicantNis || '',
-                    applicantClass: targetBooking.applicantClass || '',
-                    applicantWa: targetBooking.applicantWa || '',
-                    pjName: targetBooking.pjName || '',
-                    pjNisNip: targetBooking.pjNisNip || '',
-                    pjWa: targetBooking.pjWa || '',
-                    status: targetBooking.status || 'Menunggu Persetujuan',
-                    notes: (targetBooking.notes || '').replace(/\s*\[Foto Awal:.*?\]/g, '') + ` [${photoSummary}]`,
-                    fullData: JSON.stringify(targetBooking)
-                });
+    const payload = {
+        action: "saveBooking",
+        id: targetBooking.id || '',
+        org: targetBooking.orgName || targetBooking.org || '',
+        activity: targetBooking.activityName || targetBooking.activity || '',
+        room: targetBooking.roomName || targetBooking.room || '',
+        date: targetBooking.date || '',
+        startTime: targetBooking.startTime || '',
+        endTime: targetBooking.endTime || '',
+        applicantName: targetBooking.applicantName || '',
+        applicantNis: targetBooking.applicantNis || '',
+        applicantClass: targetBooking.applicantClass || '',
+        applicantWa: targetBooking.applicantWa || '',
+        pjName: targetBooking.pjName || '',
+        pjNisNip: targetBooking.pjNisNip || '',
+        pjWa: targetBooking.pjWa || '',
+        status: targetBooking.status || 'Menunggu Persetujuan',
+        notes: (targetBooking.notes || '').replace(/\s*\[Foto Awal:.*?\]/g, '') + ` [${photoSummary}]`,
+        fullData: JSON.stringify(targetBooking)
+    };
 
-                fetch(`${GAS_URL}?${params.toString()}`)
-                    .then(res => res.json())
-                    .then(res => {
-                        console.log("Berhasil sinkron ke cloud:", res);
-                    })
-                    .catch(err => console.error("Gagal menyimpan ke cloud:", err));
-            };
+    // Menggunakan POST request agar Base64 foto tidak terpotong URL
+    fetch(GAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+        console.log("Berhasil sinkron ke cloud:", res);
+        fetchCloudData(true);
+    })
+    .catch(err => console.error("Gagal menyimpan ke cloud:", err));
+};
 
             useEffect(() => { localStorage.setItem('siperkas_rooms_master_v2', JSON.stringify(rooms)); }, [rooms]);
             useEffect(() => { localStorage.setItem('siperkas_orgs_master_v2', JSON.stringify(organizations)); }, [organizations]);
