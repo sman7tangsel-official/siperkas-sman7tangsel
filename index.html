@@ -237,7 +237,6 @@
                                         const localAfterCount = safeArray(localMatch.afterPhotos).length;
                                         const cloudAfterCount = safeArray(cloudItem.afterPhotos).length;
                                         
-                                        // Prioritaskan lokal jika data foto lokal lebih banyak (belum tersinkron sempurna di cloud)
                                         if (localBeforeCount > cloudBeforeCount || localAfterCount > cloudAfterCount) {
                                             return {
                                                 ...cloudItem,
@@ -286,7 +285,6 @@
             const [toast, setToast] = useState(null);
             const [selectedPreselectedRoomId, setSelectedPreselectedRoomId] = useState('');
 
-            // Sinkronisasi selectedBookingDetail agar selalu memperlihatkan state terbaru secara real-time
             useEffect(() => {
                 if (selectedBookingDetail) {
                     const fresh = bookings.find(b => b.id === selectedBookingDetail.id);
