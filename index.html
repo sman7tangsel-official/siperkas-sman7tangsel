@@ -265,14 +265,19 @@
                                 const merged = parsedBookings.map(cloudItem => {
                                     const localMatch = prev.find(p => p.id === cloudItem.id);
                                     if (localMatch) {
-                                        const localBeforeCount = safeArray(localMatch.beforePhotos).length;
-                                        const cloudBeforeCount = safeArray(cloudItem.beforePhotos).length;
+                                        const localBefore = safeArray(localMatch.beforePhotos);
+                                        const cloudBefore = safeArray(cloudItem.beforePhotos);
+                                        const finalBefore = localBefore.length >= cloudBefore.length ? localBefore : cloudBefore;
+
+                                        const localAfter = safeArray(localMatch.afterPhotos);
+                                        const cloudAfter = safeArray(cloudItem.afterPhotos);
+                                        const finalAfter = localAfter.length >= cloudAfter.length ? localAfter : cloudAfter;
                                         
                                         return {
                                             ...cloudItem,
                                             status: cloudItem.status,
-                                            beforePhotos: localBeforeCount >= cloudBeforeCount ? localMatch.beforePhotos : cloudItem.beforePhotos,
-                                            afterPhotos: safeArray(localMatch.afterPhotos).length >= safeArray(cloudItem.afterPhotos).length ? localMatch.afterPhotos : cloudItem.afterPhotos
+                                            beforePhotos: finalBefore,
+                                            afterPhotos: finalAfter
                                         };
                                     }
                                     return cloudItem;
@@ -1415,7 +1420,7 @@
                                     <div data-testid="form-date-time-grid" className="grid grid-cols-3 gap-2">
                                         <div><label className="font-semibold block mb-1">Tanggal</label><input type="date" name="date" className="w-full border rounded-lg p-2" required /></div>
                                         <div><label className="font-semibold block mb-1">Jam Mulai</label><input type="time" name="startTime" className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">Jam Selesai</label><input type="time" name="endTime" className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold block mb-1}"><label className="font-semibold block mb-1">Jam Selesai</label><input type="time" name="endTime" className="w-full border rounded-lg p-2" required /></div>
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
                                         <div><label className="font-semibold label block mb-1">Nama PJ</label><input type="text" name="pjName" className="w-full border rounded-lg p-2" required /></div>
