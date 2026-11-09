@@ -182,8 +182,7 @@
                 return INITIAL_ORGANIZATIONS;
             });
 
-            // GANTI DENGAN URL WEB APP BARU HASIL DEPLOY APPSCRIPT ANDA
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbw58qPBLdtdpsMtrBEWVHHobuYi0RmOWHg0vBd07zPemziA5CFgdPloZ9RWpgDh2JvDmw/exec"; 
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbzaYplSf0UlYUtxfAx5LPt8UjwtwQGzxrZMsjaMVCr4kGyWtgxtA1oi7nocDdxCAlerbQ/exec"; 
 
             const [bookings, setBookings] = useState(() => {
                 try {
@@ -279,7 +278,6 @@
                 }
             }, [bookings]);
 
-            // Simpan atau Perbarui Data ke Google Spreadsheet
             const saveBookingToCloud = (newBookingList, targetBooking) => {
                 setBookings(newBookingList);
                 localStorage.setItem('siperkas_bookings', JSON.stringify(newBookingList));
@@ -344,7 +342,6 @@
                 showToast('Berhasil keluar dari mode Administrator.');
             };
 
-            // Hapus Data Sinkron Cloud & LocalStorage
             const handleDeleteBooking = (bookingId) => {
                 if (window.confirm(`Apakah Anda yakin ingin menghapus data peminjaman ID ${bookingId}?`)) {
                     const filtered = bookings.filter(b => b.id !== bookingId);
@@ -703,7 +700,7 @@
                                 <div className="border p-3 rounded-xl space-y-3 bg-slate-50">
                                     <h4 className="font-bold text-xs uppercase text-slate-700">VERIFIKASI MULTI-FOTO DOKUMENTASI & TIMESTAMP</h4>
                                     <div>
-                                        <p className="font-semibold text-[11px] text-slate-600 mb-1">Foto Kondisi Awal:</p>
+                                        <p className="font-semibold text-[11px] text-slate-600 mb-1">Foto Kondisi Awal (Bisa Multi-Foto):</p>
                                         <div className="grid grid-cols-2 gap-3">
                                             {safeArray(selectedBookingDetail.beforePhotos).length > 0 ? (
                                                 safeArray(selectedBookingDetail.beforePhotos).map((photoObj, i) => {
@@ -716,10 +713,11 @@
                                                             <button type="button" onClick={() => {
                                                                 if (window.confirm("Hapus foto awal ini?")) {
                                                                     const filteredPhotos = safeArray(selectedBookingDetail.beforePhotos).filter((_, index) => index !== i);
-                                                                    const newStatus = filteredPhotos.length === 0 ? 'Menunggu Persetujuan' : selectedBookingDetail.status;
-                                                                    const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, beforePhotos: filteredPhotos, status: newStatus} : b);
-                                                                    saveBookingToCloud(updatedBookings, {...selectedBookingDetail, beforePhotos: filteredPhotos, status: newStatus});
-                                                                    setSelectedBookingDetail({...selectedBookingDetail, beforePhotos: filteredPhotos, status: newStatus});
+                                                                    const newStatus = filteredPhotos.length === 0 ? 'Menunggu Persetujuan' : 'Sedang Digunakan';
+                                                                    const updatedItem = {...selectedBookingDetail, beforePhotos: filteredPhotos, status: newStatus};
+                                                                    const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
+                                                                    saveBookingToCloud(updatedBookings, updatedItem);
+                                                                    setSelectedBookingDetail(updatedItem);
                                                                     showToast("Foto awal dihapus.");
                                                                 }
                                                             }} className="absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center font-bold">✕</button>
@@ -731,7 +729,7 @@
                                     </div>
 
                                     <div>
-                                        <p className="font-semibold text-[11px] text-slate-600 mb-1">Foto Kondisi Akhir:</p>
+                                        <p className="font-semibold text-[11px] text-slate-600 mb-1">Foto Kondisi Akhir (Bisa Multi-Foto):</p>
                                         <div className="grid grid-cols-2 gap-3">
                                             {safeArray(selectedBookingDetail.afterPhotos).length > 0 ? (
                                                 safeArray(selectedBookingDetail.afterPhotos).map((photoObj, i) => {
@@ -744,10 +742,10 @@
                                                             <button type="button" onClick={() => {
                                                                 if (window.confirm("Hapus foto akhir ini?")) {
                                                                     const filteredPhotos = safeArray(selectedBookingDetail.afterPhotos).filter((_, index) => index !== i);
-                                                                    const newStatus = filteredPhotos.length === 0 ? 'Sedang Digunakan' : selectedBookingDetail.status;
-                                                                    const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, afterPhotos: filteredPhotos, status: newStatus} : b);
-                                                                    saveBookingToCloud(updatedBookings, {...selectedBookingDetail, afterPhotos: filteredPhotos, status: newStatus});
-                                                                    setSelectedBookingDetail({...selectedBookingDetail, afterPhotos: filteredPhotos, status: newStatus});
+                                                                    const updatedItem = {...selectedBookingDetail, afterPhotos: filteredPhotos};
+                                                                    const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
+                                                                    saveBookingToCloud(updatedBookings, updatedItem);
+                                                                    setSelectedBookingDetail(updatedItem);
                                                                     showToast("Foto akhir dihapus.");
                                                                 }
                                                             }} className="absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center font-bold">✕</button>
@@ -760,7 +758,7 @@
 
                                     <div className="pt-2 border-t space-y-3">
                                         <div>
-                                            <label className="block text-[11px] font-semibold mb-1 text-blue-700">➕ Tambah Foto Kondisi Awal (Bukti Dukung)</label>
+                                            <label className="block text-[11px] font-semibold mb-1 text-blue-700">➕ Tambah Foto Kondisi Awal (Bisa Pilih Banyak Sekaligus)</label>
                                             <div className="flex gap-2">
                                                 <label className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
                                                     📸 Buka Kamera Langsung
@@ -773,16 +771,17 @@
                                                                 reader.readAsDataURL(file);
                                                             }))).then(newPhotoObjs => {
                                                                 const combined = [...safeArray(selectedBookingDetail.beforePhotos), ...newPhotoObjs];
-                                                                const updated = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, beforePhotos: combined, status: 'Sedang Digunakan'} : b);
-                                                                saveBookingToCloud(updated, {...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
-                                                                setSelectedBookingDetail({...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
-                                                                showToast('Foto kamera awal diunggah & Status menjadi "Sedang Digunakan".');
+                                                                const updatedItem = {...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'};
+                                                                const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
+                                                                saveBookingToCloud(updatedBookings, updatedItem);
+                                                                setSelectedBookingDetail(updatedItem);
+                                                                showToast('Foto awal diunggah & Status berubah menjadi "Sedang Digunakan".');
                                                             });
                                                         }
                                                     }} />
                                                 </label>
                                                 <label className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
-                                                    📁 Pilih dari Galeri
+                                                    📁 Pilih Banyak dari Galeri
                                                     <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
                                                         const files = Array.from(e.target.files);
                                                         if (files.length > 0) {
@@ -792,10 +791,11 @@
                                                                 reader.readAsDataURL(file);
                                                             }))).then(newPhotoObjs => {
                                                                 const combined = [...safeArray(selectedBookingDetail.beforePhotos), ...newPhotoObjs];
-                                                                const updated = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, beforePhotos: combined, status: 'Sedang Digunakan'} : b);
-                                                                saveBookingToCloud(updated, {...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
-                                                                setSelectedBookingDetail({...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'});
-                                                                showToast('Foto galeri awal diunggah & Status menjadi "Sedang Digunakan".');
+                                                                const updatedItem = {...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'};
+                                                                const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
+                                                                saveBookingToCloud(updatedBookings, updatedItem);
+                                                                setSelectedBookingDetail(updatedItem);
+                                                                showToast('Foto awal galeri diunggah & Status menjadi "Sedang Digunakan".');
                                                             });
                                                         }
                                                     }} />
@@ -804,7 +804,7 @@
                                         </div>
 
                                         <div>
-                                            <label className="block text-[11px] font-semibold mb-1 text-emerald-700">➕ Tambah Foto Kondisi Akhir & Checklist</label>
+                                            <label className="block text-[11px] font-semibold mb-1 text-emerald-700">➕ Tambah Foto Kondisi Akhir & Checklist (Bisa Pilih Banyak)</label>
                                             <div className="flex gap-2">
                                                 <label className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
                                                     📸 Buka Kamera Langsung
@@ -823,7 +823,7 @@
                                                     }} />
                                                 </label>
                                                 <label className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
-                                                    📁 Pilih dari Galeri
+                                                    📁 Pilih Banyak dari Galeri
                                                     <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
                                                         const files = Array.from(e.target.files);
                                                         if (files.length > 0) {
@@ -881,9 +881,10 @@
                                             return;
                                         }
                                         const combined = [...safeArray(selectedBookingDetail.afterPhotos), ...pendingAfterPhotos];
-                                        const updated = bookings.map(b => b.id === selectedBookingDetail.id ? {...b, afterPhotos: combined, status: 'Selesai'} : b);
-                                        saveBookingToCloud(updated, {...selectedBookingDetail, afterPhotos: combined, status: 'Selesai'});
-                                        setSelectedBookingDetail({...selectedBookingDetail, afterPhotos: combined, status: 'Selesai'});
+                                        const updatedItem = {...selectedBookingDetail, afterPhotos: combined, status: 'Selesai'};
+                                        const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
+                                        saveBookingToCloud(updatedBookings, updatedItem);
+                                        setSelectedBookingDetail(updatedItem);
                                         setPendingAfterPhotos([]);
                                         setActiveModal('detail');
                                         showToast('Peminjaman selesai!');
