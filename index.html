@@ -194,7 +194,7 @@
                 return [];
             });
 
-          const fetchCloudData = (isBackground = true) => {
+         const fetchCloudData = (isBackground = true) => {
                 fetch(GAS_URL)
                     .then(res => res.json())
                     .then(result => {
@@ -203,14 +203,19 @@
                                 let parsedFull = null;
                                 if (item.fullData) {
                                     try {
-                                        parsedFull = JSON.parse(item.fullData);
+                                        parsedFull = typeof item.fullData === 'string' ? JSON.parse(item.fullData) : item.fullData;
                                     } catch(e) {}
                                 }
                                 
-                                const cloudBefore = (parsedFull && parsedFull.beforePhotos) ? parsedFull.beforePhotos : [];
-                                const cloudAfter = (parsedFull && parsedFull.afterPhotos) ? parsedFull.afterPhotos : [];
+                                // Ambil foto dari parsedFull atau item langsung dengan aman
+                                let cloudBefore = [];
+                                let cloudAfter = [];
                                 
-                                // Evaluasi status otomatis berdasarkan foto
+                                if (parsedFull) {
+                                    if (parsedFull.beforePhotos) cloudBefore = safeArray(parsedFull.beforePhotos);
+                                    if (parsedFull.afterPhotos) cloudAfter = safeArray(parsedFull.afterPhotos);
+                                }
+                                
                                 let derivedStatus = item.status || (parsedFull && parsedFull.status) || 'Menunggu Persetujuan';
                                 if (cloudBefore.length > 0 && derivedStatus === 'Menunggu Persetujuan') {
                                     derivedStatus = 'Sedang Digunakan';
@@ -245,13 +250,12 @@
                                         const localBeforeCount = safeArray(localMatch.beforePhotos).length;
                                         const cloudBeforeCount = safeArray(cloudItem.beforePhotos).length;
                                         
-                                        // Jika data lokal memiliki foto atau status yang lebih baru/aktif dibanding cloud
-                                        if (localBeforeCount > cloudBeforeCount || localMatch.status === 'Sedang Digunakan') {
+                                        if (localBeforeCount >= cloudBeforeCount) {
                                             return {
                                                 ...cloudItem,
-                                                status: localMatch.status,
-                                                beforePhotos: localMatch.beforePhotos,
-                                                afterPhotos: localMatch.afterPhotos
+                                                status: localMatch.status || cloudItem.status,
+                                                beforePhotos: localMatch.beforePhotos.length > 0 ? localMatch.beforePhotos : cloudItem.beforePhotos,
+                                                afterPhotos: localMatch.afterPhotos.length > 0 ? localMatch.afterPhotos : cloudItem.afterPhotos
                                             };
                                         }
                                     }
