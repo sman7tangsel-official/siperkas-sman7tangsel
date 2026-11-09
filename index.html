@@ -184,7 +184,7 @@
                 return INITIAL_ORGANIZATIONS;
             });
 
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbzaYplSf0UlYUtxfAx5LPt8UjwtwQGzxrZMsjaMVCr4kGyWtgxtA1oi7nocDdxCAlerbQ/exec"; 
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbzz6qIJicpdXEOzKf62vGfYiykI01SxbhcEnvsGOH7PzLD1IW5kCHBpokWYZ1NvmBymQg/exec"; 
 
             const [bookings, setBookings] = useState(() => {
                 try {
@@ -194,7 +194,7 @@
                 return [];
             });
 
-            const fetchCloudData = (isBackground = true) => {
+          const fetchCloudData = (isBackground = true) => {
                 fetch(GAS_URL)
                     .then(res => res.json())
                     .then(result => {
@@ -209,9 +209,10 @@
                                 
                                 const cloudBefore = (parsedFull && parsedFull.beforePhotos) ? parsedFull.beforePhotos : [];
                                 const cloudAfter = (parsedFull && parsedFull.afterPhotos) ? parsedFull.afterPhotos : [];
-                                let derivedStatus = item.status || (parsedFull && parsedFull.status) || 'Menunggu Persetujuan';
                                 
-                                if (cloudBefore.length > 0 && (derivedStatus === 'Menunggu Persetujuan' || derivedStatus === 'Disetujui' || derivedStatus === 'Proses Pengajuan')) {
+                                // Evaluasi status otomatis berdasarkan foto
+                                let derivedStatus = item.status || (parsedFull && parsedFull.status) || 'Menunggu Persetujuan';
+                                if (cloudBefore.length > 0 && derivedStatus === 'Menunggu Persetujuan') {
                                     derivedStatus = 'Sedang Digunakan';
                                 }
 
@@ -243,10 +244,9 @@
                                     if (localMatch) {
                                         const localBeforeCount = safeArray(localMatch.beforePhotos).length;
                                         const cloudBeforeCount = safeArray(cloudItem.beforePhotos).length;
-                                        const localAfterCount = safeArray(localMatch.afterPhotos).length;
-                                        const cloudAfterCount = safeArray(cloudItem.afterPhotos).length;
                                         
-                                        if (localBeforeCount > cloudBeforeCount || localAfterCount > cloudAfterCount) {
+                                        // Jika data lokal memiliki foto atau status yang lebih baru/aktif dibanding cloud
+                                        if (localBeforeCount > cloudBeforeCount || localMatch.status === 'Sedang Digunakan') {
                                             return {
                                                 ...cloudItem,
                                                 status: localMatch.status,
