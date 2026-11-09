@@ -13,13 +13,13 @@
     @media print {
         @page {
             size: A4 portrait;
-            margin: 5mm !important;
+            margin: 4mm !important;
         }
         body {
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
-            font-size: 9px !important;
+            font-size: 8px !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
@@ -42,6 +42,8 @@
             margin: 0 auto !important;
             width: 100% !important;
             max-width: 100% !important;
+            max-height: 100vh !important;
+            overflow: hidden !important;
         }
         .print-signature-area {
             page-break-inside: avoid !important;
@@ -192,7 +194,6 @@
                 return [];
             });
 
-            // Sinkronisasi data dari Google Spreadsheet berkala & saat dimuat
             const fetchCloudData = () => {
                 fetch(GAS_URL)
                     .then(res => res.json())
@@ -234,7 +235,7 @@
 
             useEffect(() => {
                 fetchCloudData();
-                const interval = setInterval(fetchCloudData, 10000); // Sinkronisasi otomatis tiap 10 detik
+                const interval = setInterval(fetchCloudData, 8000);
                 return () => clearInterval(interval);
             }, []);
 
@@ -290,7 +291,6 @@
                 
                 if (!targetBooking) return;
 
-                // Hitung info jumlah foto untuk dicatat di spreadsheet
                 const beforeCount = safeArray(targetBooking.beforePhotos).length;
                 const afterCount = safeArray(targetBooking.afterPhotos).length;
                 const photoSummary = `Foto Awal: ${beforeCount} file | Foto Akhir: ${afterCount} file`;
@@ -320,7 +320,7 @@
                     .then(res => res.json())
                     .then(res => {
                         console.log("Berhasil sinkron ke cloud:", res);
-                        fetchCloudData(); // Ambil data terbaru langsung setelah simpan
+                        fetchCloudData();
                     })
                     .catch(err => console.error("Gagal menyimpan ke cloud:", err));
             };
@@ -715,7 +715,7 @@
                                 <div className="border p-3 rounded-xl space-y-3 bg-slate-50">
                                     <h4 className="font-bold text-xs uppercase text-slate-700">VERIFIKASI MULTI-FOTO DOKUMENTASI & TIMESTAMP</h4>
                                     <div>
-                                        <p className="font-semibold text-[11px] text-slate-600 mb-1">Foto Kondisi Awal (Bisa Pilih Banyak Foto Sekaligus):</p>
+                                        <p className="font-semibold text-[11px] text-slate-600 mb-1">Foto Kondisi Awal (Bisa Pilih Banyak Foto / Kamera Langsung):</p>
                                         <div className="grid grid-cols-2 gap-3">
                                             {safeArray(selectedBookingDetail.beforePhotos).length > 0 ? (
                                                 safeArray(selectedBookingDetail.beforePhotos).map((photoObj, i) => {
@@ -744,7 +744,7 @@
                                     </div>
 
                                     <div>
-                                        <p className="font-semibold text-[11px] text-slate-600 mb-1">Foto Kondisi Akhir (Bisa Pilih Banyak Foto Sekaligus):</p>
+                                        <p className="font-semibold text-[11px] text-slate-600 mb-1">Foto Kondisi Akhir (Bisa Pilih Banyak Foto / Kamera Langsung):</p>
                                         <div className="grid grid-cols-2 gap-3">
                                             {safeArray(selectedBookingDetail.afterPhotos).length > 0 ? (
                                                 safeArray(selectedBookingDetail.afterPhotos).map((photoObj, i) => {
@@ -773,10 +773,30 @@
 
                                     <div className="pt-2 border-t space-y-3">
                                         <div>
-                                            <label className="block text-[11px] font-semibold mb-1 text-blue-700">➕ Tambah Foto Kondisi Awal (Bisa Pilih Banyak Sekaligus)</label>
+                                            <label className="block text-[11px] font-semibold mb-1 text-blue-700">➕ Tambah Foto Kondisi Awal (Kamera Langsung atau Banyak dari Galeri)</label>
                                             <div className="flex gap-2">
                                                 <label className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
-                                                    📸 Buka Kamera / Pilih Foto
+                                                    📸 Buka Kamera Langsung
+                                                    <input type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={(e) => {
+                                                        const files = Array.from(e.target.files);
+                                                        if (files.length > 0) {
+                                                            Promise.all(files.map(file => new Promise((resolve) => {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => resolve({ url: reader.result, timestamp: getFormattedTimestamp() });
+                                                                reader.readAsDataURL(file);
+                                                            }))).then(newPhotoObjs => {
+                                                                const combined = [...safeArray(selectedBookingDetail.beforePhotos), ...newPhotoObjs];
+                                                                const updatedItem = {...selectedBookingDetail, beforePhotos: combined, status: 'Sedang Digunakan'};
+                                                                const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
+                                                                saveBookingToCloud(updatedBookings, updatedItem);
+                                                                setSelectedBookingDetail(updatedItem);
+                                                                showToast('Foto awal diunggah & Status berubah menjadi "Sedang Digunakan".');
+                                                            });
+                                                        }
+                                                    }} />
+                                                </label>
+                                                <label className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
+                                                    📁 Pilih Banyak dari Galeri
                                                     <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
                                                         const files = Array.from(e.target.files);
                                                         if (files.length > 0) {
@@ -790,7 +810,7 @@
                                                                 const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
                                                                 saveBookingToCloud(updatedBookings, updatedItem);
                                                                 setSelectedBookingDetail(updatedItem);
-                                                                showToast('Foto awal berhasil diunggah & Status menjadi "Sedang Digunakan".');
+                                                                showToast('Foto awal galeri diunggah & Status menjadi "Sedang Digunakan".');
                                                             });
                                                         }
                                                     }} />
@@ -799,10 +819,26 @@
                                         </div>
 
                                         <div>
-                                            <label className="block text-[11px] font-semibold mb-1 text-emerald-700">➕ Tambah Foto Kondisi Akhir & Checklist (Bisa Pilih Banyak)</label>
+                                            <label className="block text-[11px] font-semibold mb-1 text-emerald-700">➕ Tambah Foto Kondisi Akhir & Checklist (Kamera/Galeri)</label>
                                             <div className="flex gap-2">
                                                 <label className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
-                                                    📸 Buka Kamera / Pilih Foto Akhir
+                                                    📸 Buka Kamera Langsung
+                                                    <input type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={(e) => {
+                                                        const files = Array.from(e.target.files);
+                                                        if (files.length > 0) {
+                                                            Promise.all(files.map(file => new Promise((resolve) => {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => resolve({ url: reader.result, timestamp: getFormattedTimestamp() });
+                                                                reader.readAsDataURL(file);
+                                                            }))).then(newPhotoObjs => {
+                                                                setPendingAfterPhotos(newPhotoObjs);
+                                                                setActiveModal('checklist_verification');
+                                                            });
+                                                        }
+                                                    }} />
+                                                </label>
+                                                <label className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
+                                                    📁 Pilih Banyak dari Galeri
                                                     <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
                                                         const files = Array.from(e.target.files);
                                                         if (files.length > 0) {
@@ -1116,129 +1152,107 @@
                         </div>
                     )}
 
-                    {/* MODAL BERITA ACARA */}
+                    {/* MODAL BERITA ACARA (SUDAH DIOPTIMASI AGAR PAS 1 HALAMAN A4/F4) */}
                     {activeModal === 'berita_acara' && selectedBookingDetail && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-                            <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl relative max-h-[95vh] overflow-y-auto print-container text-black">
-                                <div className="text-center border-b-2 border-black pb-2 mb-2 flex flex-col items-center gap-1">
-                                    {schoolLogo && <img src={schoolLogo} alt="Logo" className="w-12 h-12 object-contain" />}
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 overflow-y-auto">
+                            <div className="bg-white rounded-2xl max-w-2xl w-full p-4 shadow-2xl relative max-h-[98vh] overflow-y-auto print-container text-black space-y-2">
+                                <div className="text-center border-b border-black pb-1 mb-1 flex flex-col items-center gap-0.5">
+                                    {schoolLogo && <img src={schoolLogo} alt="Logo" className="w-8 h-8 object-contain" />}
                                     <div>
-                                        <h3 className="text-[11px] font-bold uppercase text-blue-900 leading-tight">Pemerintah Provinsi Banten</h3>
-                                        <h3 className="text-[11px] font-bold uppercase text-blue-900 leading-tight">Dinas Pendidikan dan Kebudayaan</h3>
-                                        <h2 className="text-base font-extrabold text-blue-900 leading-tight">SMAN 7 KOTA TANGERANG SELATAN</h2>
-                                        <p className="text-[10px] text-blue-900 leading-tight">Jl. Villa Melati Mas Blok J, Pondok Jagung, Kec. Serpong Utara, Kota Tangerang Selatan</p>
+                                        <h3 className="text-[9px] font-bold uppercase text-blue-900 leading-tight">Pemerintah Provinsi Banten • Dinas Pendidikan dan Kebudayaan</h3>
+                                        <h2 className="text-xs font-extrabold text-blue-900 leading-tight">SMAN 7 KOTA TANGERANG SELATAN</h2>
+                                        <p className="text-[8px] text-blue-900 leading-tight">Jl. Villa Melati Mas Blok J, Pondok Jagung, Kec. Serpong Utara, Kota Tangerang Selatan</p>
                                     </div>
-                                    <h1 className="text-sm font-bold text-black mt-1 underline">BERITA ACARA PEMINJAMAN & PENGEMBALIAN RUANG KELAS</h1>
-                                    <p className="text-[11px] font-bold text-black">Nomor Transaksi: {selectedBookingDetail.id}</p>
+                                    <h1 className="text-xs font-bold text-black mt-0.5 underline">BERITA ACARA PEMINJAMAN & PENGEMBALIAN RUANG KELAS</h1>
+                                    <p className="text-[9px] font-bold text-black">ID Transaksi: {selectedBookingDetail.id}</p>
                                 </div>
 
-                                <div className="space-y-2 text-xs text-black">
-                                    <div className="grid grid-cols-2 gap-1.5 bg-slate-50 p-2.5 rounded-xl border-2 border-black font-semibold text-[11px]">
+                                <div className="space-y-1.5 text-[9px] text-black">
+                                    <div className="grid grid-cols-2 gap-1 bg-slate-50 p-2 rounded-lg border border-black font-semibold">
                                         <div><strong>Organisasi:</strong> {selectedBookingDetail.orgName}</div>
                                         <div><strong>Nama Kegiatan:</strong> {selectedBookingDetail.activityName}</div>
                                         <div><strong>Ruangan:</strong> {selectedBookingDetail.roomName}</div>
-                                        <div><strong>Tanggal:</strong> {selectedBookingDetail.date} ({selectedBookingDetail.startTime} - {selectedBookingDetail.endTime} WIB)</div>
+                                        <div><strong>Tanggal:</strong> {selectedBookingDetail.date} ({selectedBookingDetail.startTime} - {selectedBookingDetail.endTime})</div>
                                         <div><strong>Peminjam:</strong> {selectedBookingDetail.applicantName} (NIS: {selectedBookingDetail.applicantNis || '-'})</div>
                                         <div><strong>Penanggung Jawab:</strong> {selectedBookingDetail.pjName}</div>
-                                        <div><strong>Pendamping / Wali Kelas:</strong> {selectedBookingDetail.waliKelas}</div>
+                                        <div><strong>Pendamping:</strong> {selectedBookingDetail.waliKelas}</div>
                                         <div><strong>Status Akhir:</strong> {selectedBookingDetail.status}</div>
                                     </div>
 
-                                    <div className="border-2 border-black p-2.5 rounded-xl space-y-1.5">
-                                        <h4 className="font-bold uppercase text-black text-[11px]">VERIFIKASI DOKUMENTASI, KELISTRIKAN & KEBERSIHAN RUANGAN</h4>
-                                        <div className="text-[10px] space-y-0.5 text-black">
-                                            <p>✓ Foto Kondisi Awal & Akhir Ruangan Sesuai Standar (Dilengkapi Timestamp Lokasi & Waktu)</p>
-                                            <p>✓ Perangkat Elektronik & Kelistrikan (AC, Lampu, Proyektor) Dimatikan dengan Benar</p>
-                                            <p>✓ Ruangan Dalam Kondisi Bersih, Rapi, dan Meja/Kursi Sesuai Tata Letak Semula</p>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3 pt-1">
-                                            <div className="border-2 border-black p-1.5 rounded-lg bg-white">
-                                                <p className="font-bold text-[10px] mb-1">Lampiran Foto Kondisi Awal:</p>
-                                                <div className="grid grid-cols-1 gap-1">
+                                    <div className="border border-black p-2 rounded-lg space-y-1">
+                                        <h4 className="font-bold uppercase text-black text-[9px]">VERIFIKASI DOKUMENTASI & KONDISI RUANGAN</h4>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="border border-black p-1 rounded bg-white">
+                                                <p className="font-bold text-[8px] mb-1">Foto Kondisi Awal:</p>
+                                                <div className="grid grid-cols-2 gap-1">
                                                     {safeArray(selectedBookingDetail.beforePhotos).length > 0 ? (
                                                         safeArray(selectedBookingDetail.beforePhotos).map((photoObj, i) => {
                                                             const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
-                                                            const timeStampText = typeof photoObj === 'object' ? photoObj.timestamp : getFormattedTimestamp();
                                                             return (
-                                                                <div key={i} className="relative border rounded bg-white overflow-hidden shadow">
-                                                                    <img src={imgSrc} alt="Awal" className="w-full h-32 object-cover" />
-                                                                    <div className="bg-black/75 text-white text-[9px] p-1 font-mono text-center">📍 {timeStampText}</div>
+                                                                <div key={i} className="relative border rounded bg-white overflow-hidden">
+                                                                    <img src={imgSrc} alt="Awal" className="w-full h-20 object-cover" />
                                                                 </div>
                                                             );
                                                         })
-                                                    ) : (<span className="italic text-[10px]">Belum ada foto awal</span>)}
+                                                    ) : (<span className="italic text-[8px]">Belum ada</span>)}
                                                 </div>
                                             </div>
-                                            <div className="border-2 border-black p-1.5 rounded-lg bg-white">
-                                                <p className="font-bold text-[10px] mb-1">Lampiran Foto Kondisi Akhir:</p>
-                                                <div className="grid grid-cols-1 gap-2">
+                                            <div className="border border-black p-1 rounded bg-white">
+                                                <p className="font-bold text-[8px] mb-1">Foto Kondisi Akhir:</p>
+                                                <div className="grid grid-cols-2 gap-1">
                                                     {safeArray(selectedBookingDetail.afterPhotos).length > 0 ? (
                                                         safeArray(selectedBookingDetail.afterPhotos).map((photoObj, i) => {
                                                             const imgSrc = typeof photoObj === 'object' ? photoObj.url : photoObj;
-                                                            const timeStampText = typeof photoObj === 'object' ? photoObj.timestamp : getFormattedTimestamp();
                                                             return (
-                                                                <div key={i} className="relative border rounded bg-white overflow-hidden shadow">
-                                                                    <img src={imgSrc} alt="Akhir" className="w-full h-32 object-cover" />
-                                                                    <div className="bg-black/75 text-white text-[9px] p-1 font-mono text-center">📍 {timeStampText}</div>
+                                                                <div key={i} className="relative border rounded bg-white overflow-hidden">
+                                                                    <img src={imgSrc} alt="Akhir" className="w-full h-20 object-cover" />
                                                                 </div>
                                                             );
                                                         })
-                                                    ) : (<span className="italic text-[10px]">Belum ada foto akhir</span>)}
+                                                    ) : (<span className="italic text-[8px]">Belum ada</span>)}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="pt-2 border-t-2 border-black mt-2 print-signature-area">
-                                        <p className="font-bold text-center text-[10px] mb-1">LEMBAR PENGESAHAN & TANDA TANGAN PERTANGGUNGJAWABAN</p>
-                                        <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
-                                            <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
-                                                <div>
-                                                    <p className="font-bold">Peminjam</p>
-                                                    <p className="text-[9px] text-gray-600">Organisasi / Siswa</p>
-                                                </div>
+                                    <div className="pt-1 border-t border-black print-signature-area">
+                                        <p className="font-bold text-center text-[9px] mb-1">LEMBAR PENGESAHAN & TANDA TANGAN</p>
+                                        <div className="grid grid-cols-4 gap-1.5 text-center text-[8px]">
+                                            <div className="border border-black p-1 rounded-lg bg-white flex flex-col justify-between h-20">
+                                                <p className="font-bold">Peminjam</p>
                                                 <div className="mt-auto">
                                                     <p className="font-bold underline">{selectedBookingDetail.applicantName || '-'}</p>
-                                                    <p className="text-[9px]">NIS: {selectedBookingDetail.applicantNis || '-'}</p>
+                                                    <p className="text-[7px]">NIS: {selectedBookingDetail.applicantNis || '-'}</p>
                                                 </div>
                                             </div>
-                                            <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
-                                                <div>
-                                                    <p className="font-bold">Penanggung Jawab</p>
-                                                    <p className="text-[9px] text-gray-600">Ketua / Pembina</p>
-                                                </div>
+                                            <div className="border border-black p-1 rounded-lg bg-white flex flex-col justify-between h-20">
+                                                <p className="font-bold">Penanggung Jawab</p>
                                                 <div className="mt-auto">
                                                     <p className="font-bold underline">{selectedBookingDetail.pjName || '-'}</p>
-                                                    <p className="text-[9px]">NIP/ID: {selectedBookingDetail.pjNisNip || '199708212025211017'}</p>
+                                                    <p className="text-[7px]">ID PJ</p>
                                                 </div>
                                             </div>
-                                            <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
-                                                <div>
-                                                    <p className="font-bold">Mengetahui</p>
-                                                    <p className="text-[9px] text-gray-600">Pendamping / Wali Kelas</p>
-                                                </div>
+                                            <div className="border border-black p-1 rounded-lg bg-white flex flex-col justify-between h-20">
+                                                <p className="font-bold">Wali Kelas</p>
                                                 <div className="mt-auto">
-                                                    <p className="font-bold underline">{selectedBookingDetail.waliKelas || 'Tri Kurnia Fatmawati, S.Si, M.Pd'}</p>
-                                                    <p className="text-[9px]">NIP: {selectedBookingDetail.nipWali || '198105042011012003'}</p>
+                                                    <p className="font-bold underline truncate">{selectedBookingDetail.waliKelas || '-'}</p>
+                                                    <p className="text-[7px]">Pendamping</p>
                                                 </div>
                                             </div>
-                                            <div className="border-2 border-black p-1.5 rounded-xl bg-white flex flex-col justify-between h-24">
-                                                <div>
-                                                    <p className="font-bold">Disetujui</p>
-                                                    <p className="text-[9px] text-gray-600">Wakasek Sarpras</p>
-                                                </div>
+                                            <div className="border border-black p-1 rounded-lg bg-white flex flex-col justify-between h-20">
+                                                <p className="font-bold">Wakasek Sarpras</p>
                                                 <div className="mt-auto">
-                                                    <p className="font-bold underline">Tri Kurnia Fatmawati, S.Si, M.Pd</p>
-                                                    <p className="text-[9px]">NIP. 198105042011012003</p>
+                                                    <p className="font-bold underline">Tri Kurnia F., M.Pd</p>
+                                                    <p className="text-[7px]">NIP. 198105042011012003</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="mt-4 flex justify-end gap-3 pt-3 border-t-2 border-black no-print">
-                                    <button onClick={() => window.print()} className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow">🖨️ Cetak / Simpan PDF</button>
-                                    <button onClick={() => setActiveModal(null)} className="bg-slate-200 text-slate-800 px-4 py-2 rounded-xl text-xs font-bold">Tutup</button>
+                                <div className="mt-2 flex justify-end gap-2 pt-2 border-t border-black no-print">
+                                    <button onClick={() => window.print()} className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">🖨️ Cetak / Simpan PDF (1 Halaman)</button>
+                                    <button onClick={() => setActiveModal(null)} className="bg-slate-200 text-slate-800 px-3 py-1.5 rounded-lg text-xs font-bold">Tutup</button>
                                 </div>
                             </div>
                         </div>
@@ -1315,7 +1329,7 @@
                                         <div><label className="font-semibold block mb-1">Jam Selesai</label><input type="time" name="endTime" className="w-full border rounded-lg p-2" required /></div>
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
-                                        <div><label className="font-semibold block mb-1">Nama PJ</label><input type="text" name="pjName" className="w-full border rounded-lg p-2" required /></div>
+                                        <div><label className="font-semibold label block mb-1">Nama PJ</label><input type="text" name="pjName" className="w-full border rounded-lg p-2" required /></div>
                                         <div><label className="font-semibold block mb-1">NIS/NIP PJ</label><input type="text" name="pjNisNip" className="w-full border rounded-lg p-2" required /></div>
                                         <div><label className="font-semibold block mb-1">No WA PJ</label><input type="text" name="pjWa" className="w-full border rounded-lg p-2" required /></div>
                                     </div>
