@@ -200,34 +200,58 @@
                     .then(result => {
                         if (result.status === "success" && result.data) {
                             const parsedBookings = result.data.map(item => {
+                                let parsedFull = null;
                                 if (item.fullData) {
                                     try {
-                                        return JSON.parse(item.fullData);
+                                        parsedFull = JSON.parse(item.fullData);
                                     } catch(e) {}
                                 }
                                 return {
                                     id: item.id,
-                                    orgName: item.org || item.orgName,
-                                    activityName: item.activity || item.activityName,
-                                    roomName: item.room || item.roomName,
-                                    date: item.date,
-                                    startTime: item.startTime || '',
-                                    endTime: item.endTime || '',
-                                    applicantName: item.applicantName || '',
-                                    applicantNis: item.applicantNis || '',
-                                    applicantClass: item.applicantClass || '',
-                                    applicantWa: item.applicantWa || '',
-                                    pjName: item.pjName || item.pic || '',
-                                    pjNisNip: item.pjNisNip || '',
-                                    pjWa: item.pjWa || item.phone || '',
-                                    status: item.status || 'Menunggu Persetujuan',
-                                    notes: item.notes || '',
-                                    beforePhotos: [],
-                                    afterPhotos: []
+                                    orgName: item.org || item.orgName || (parsedFull && parsedFull.orgName) || '',
+                                    activityName: item.activity || item.activityName || (parsedFull && parsedFull.activityName) || '',
+                                    roomName: item.room || item.roomName || (parsedFull && parsedFull.roomName) || '',
+                                    date: item.date || (parsedFull && parsedFull.date) || '',
+                                    startTime: item.startTime || (parsedFull && parsedFull.startTime) || '',
+                                    endTime: item.endTime || (parsedFull && parsedFull.endTime) || '',
+                                    applicantName: item.applicantName || (parsedFull && parsedFull.applicantName) || '',
+                                    applicantNis: item.applicantNis || (parsedFull && parsedFull.applicantNis) || '',
+                                    applicantClass: item.applicantClass || (parsedFull && parsedFull.applicantClass) || '',
+                                    applicantWa: item.applicantWa || (parsedFull && parsedFull.applicantWa) || '',
+                                    pjName: item.pjName || item.pic || (parsedFull && parsedFull.pjName) || '',
+                                    pjNisNip: item.pjNisNip || (parsedFull && parsedFull.pjNisNip) || '',
+                                    pjWa: item.pjWa || item.phone || (parsedFull && parsedFull.pjWa) || '',
+                                    status: item.status || (parsedFull && parsedFull.status) || 'Menunggu Persetujuan',
+                                    notes: item.notes || (parsedFull && parsedFull.notes) || '',
+                                    beforePhotos: (parsedFull && parsedFull.beforePhotos) ? parsedFull.beforePhotos : [],
+                                    afterPhotos: (parsedFull && parsedFull.afterPhotos) ? parsedFull.afterPhotos : []
                                 };
                             });
-                            setBookings(parsedBookings);
-                            localStorage.setItem('siperkas_bookings', JSON.stringify(parsedBookings));
+                            
+                            setBookings(prev => {
+                                const merged = parsedBookings.map(cloudItem => {
+                                    const localMatch = prev.find(p => p.id === cloudItem.id);
+                                    if (localMatch) {
+                                        const localBeforeCount = safeArray(localMatch.beforePhotos).length;
+                                        const cloudBeforeCount = safeArray(cloudItem.beforePhotos).length;
+                                        const localAfterCount = safeArray(localMatch.afterPhotos).length;
+                                        const cloudAfterCount = safeArray(cloudItem.afterPhotos).length;
+                                        
+                                        // Prioritaskan lokal jika data foto lokal lebih banyak (belum tersinkron sempurna di cloud)
+                                        if (localBeforeCount > cloudBeforeCount || localAfterCount > cloudAfterCount) {
+                                            return {
+                                                ...cloudItem,
+                                                status: localMatch.status,
+                                                beforePhotos: localMatch.beforePhotos,
+                                                afterPhotos: localMatch.afterPhotos
+                                            };
+                                        }
+                                    }
+                                    return cloudItem;
+                                });
+                                localStorage.setItem('siperkas_bookings', JSON.stringify(merged));
+                                return merged;
+                            });
                         }
                     })
                     .catch(err => console.error("Gagal memuat data cloud:", err));
@@ -235,7 +259,7 @@
 
             useEffect(() => {
                 fetchCloudData(false);
-                const interval = setInterval(() => fetchCloudData(true), 12000);
+                const interval = setInterval(() => fetchCloudData(true), 15000);
                 return () => clearInterval(interval);
             }, []);
 
@@ -261,6 +285,16 @@
             const [adminPasswordInput, setAdminPasswordInput] = useState('');
             const [toast, setToast] = useState(null);
             const [selectedPreselectedRoomId, setSelectedPreselectedRoomId] = useState('');
+
+            // Sinkronisasi selectedBookingDetail agar selalu memperlihatkan state terbaru secara real-time
+            useEffect(() => {
+                if (selectedBookingDetail) {
+                    const fresh = bookings.find(b => b.id === selectedBookingDetail.id);
+                    if (fresh) {
+                        setSelectedBookingDetail(fresh);
+                    }
+                }
+            }, [bookings]);
 
             useEffect(() => {
                 const updatedRooms = rooms.map(room => {
@@ -289,7 +323,7 @@
                 setBookings(newBookingList);
                 localStorage.setItem('siperkas_bookings', JSON.stringify(newBookingList));
                 
-                if (targetBooking && selectedBookingDetail && selectedBookingDetail.id === targetBooking.id) {
+                if (targetBooking) {
                     setSelectedBookingDetail(targetBooking);
                 }
 
@@ -1150,7 +1184,7 @@
                         </div>
                     )}
 
-                    {/* MODAL BERITA ACARA (DISESUAIKAN DENGAN FOTO CONTOH ANDA) */}
+                    {/* MODAL BERITA ACARA */}
                     {activeModal === 'berita_acara' && selectedBookingDetail && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 overflow-y-auto">
                             <div className="bg-white rounded-2xl max-w-2xl w-full p-4 shadow-2xl relative max-h-[98vh] overflow-y-auto print-container text-black space-y-2">
