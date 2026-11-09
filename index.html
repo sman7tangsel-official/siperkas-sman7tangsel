@@ -237,10 +237,7 @@
                                     if (parsedFull.afterPhotos) cloudAfter = safeArray(parsedFull.afterPhotos);
                                 }
                                 
-                                let derivedStatus = (parsedFull && parsedFull.status) ? parsedFull.status : (item.status || 'Menunggu Persetujuan');
-                                if (cloudBefore.length > 0 && derivedStatus === 'Menunggu Persetujuan') {
-                                    derivedStatus = 'Sedang Digunakan';
-                                }
+                                const cloudStatus = item.status || (parsedFull && parsedFull.status) || 'Menunggu Persetujuan';
 
                                 return {
                                     id: item.id,
@@ -257,7 +254,7 @@
                                     pjName: item.pjName || item.pic || (parsedFull && parsedFull.pjName) || '',
                                     pjNisNip: item.pjNisNip || (parsedFull && parsedFull.pjNisNip) || '',
                                     pjWa: item.pjWa || item.phone || (parsedFull && parsedFull.pjWa) || '',
-                                    status: derivedStatus,
+                                    status: cloudStatus,
                                     notes: item.notes || (parsedFull && parsedFull.notes) || '',
                                     beforePhotos: cloudBefore,
                                     afterPhotos: cloudAfter
@@ -268,13 +265,12 @@
                                 const merged = parsedBookings.map(cloudItem => {
                                     const localMatch = prev.find(p => p.id === cloudItem.id);
                                     if (localMatch) {
-                                        const prioritizedStatus = localMatch.status !== 'Menunggu Persetujuan' ? localMatch.status : cloudItem.status;
                                         const localBeforeCount = safeArray(localMatch.beforePhotos).length;
                                         const cloudBeforeCount = safeArray(cloudItem.beforePhotos).length;
                                         
                                         return {
                                             ...cloudItem,
-                                            status: prioritizedStatus,
+                                            status: cloudItem.status,
                                             beforePhotos: localBeforeCount >= cloudBeforeCount ? localMatch.beforePhotos : cloudItem.beforePhotos,
                                             afterPhotos: safeArray(localMatch.afterPhotos).length >= safeArray(cloudItem.afterPhotos).length ? localMatch.afterPhotos : cloudItem.afterPhotos
                                         };
