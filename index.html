@@ -939,8 +939,8 @@
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <label className="block text-[11px] font-semibold mb-1 text-emerald-700">➕ Tambah Foto Kondisi Akhir & Checklist (Kamera/Galeri)</label>
+                                       <div>
+                                            <label className="block text-[11px] font-semibold mb-1 text-emerald-700">➕ Tambah Foto Kondisi Akhir (Kamera/Galeri)</label>
                                             <div className="flex gap-2">
                                                 <label className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-center py-2 px-3 rounded-lg text-xs font-bold cursor-pointer shadow">
                                                     📸 Buka Kamera Langsung
@@ -956,8 +956,15 @@
                                                                 };
                                                                 reader.readAsDataURL(file);
                                                             }))).then(newPhotoObjs => {
-                                                                setPendingAfterPhotos(newPhotoObjs);
-                                                                setActiveModal('checklist_verification');
+                                                                const combined = [...safeArray(selectedBookingDetail.afterPhotos), ...newPhotoObjs];
+                                                                const updatedItem = {
+                                                                    ...selectedBookingDetail, 
+                                                                    afterPhotos: combined, 
+                                                                    status: 'Selesai'
+                                                                };
+                                                                const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
+                                                                saveBookingToCloud(updatedBookings, updatedItem);
+                                                                showToast('Foto akhir berhasil diunggah & tersinkron!');
                                                             });
                                                         }
                                                     }} />
@@ -976,8 +983,15 @@
                                                                 };
                                                                 reader.readAsDataURL(file);
                                                             }))).then(newPhotoObjs => {
-                                                                setPendingAfterPhotos(newPhotoObjs);
-                                                                setActiveModal('checklist_verification');
+                                                                const combined = [...safeArray(selectedBookingDetail.afterPhotos), ...newPhotoObjs];
+                                                                const updatedItem = {
+                                                                    ...selectedBookingDetail, 
+                                                                    afterPhotos: combined, 
+                                                                    status: 'Selesai'
+                                                                };
+                                                                const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
+                                                                saveBookingToCloud(updatedBookings, updatedItem);
+                                                                showToast('Foto akhir galeri berhasil diunggah & tersinkron!');
                                                             });
                                                         }
                                                     }} />
