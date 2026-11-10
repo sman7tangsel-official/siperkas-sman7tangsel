@@ -1449,8 +1449,8 @@
                                         pjWa: fd.get('pjWa'),
                                         roomId: roomId,
                                         roomName: rObj ? rObj.name : 'Ruangan',
-                                        waliKelas: rObj ? rObj.waliKelas : '-',
-                                        nipWali: rObj ? rObj.nipWali : '-',
+                                        waliKelas: rObj ? rObj.waliKelas : '-', // ✅ Otomatis mengambil wali kelas ruangan
+                                        nipWali: rObj ? rObj.nipWali : '-',     // ✅ Otomatis mengambil NIP wali kelas
                                         date: date,
                                         startTime: startTime,
                                         endTime: endTime,
