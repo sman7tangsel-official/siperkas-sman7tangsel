@@ -1309,7 +1309,10 @@
                                 <div className="text-center border-b border-black pb-1 mb-1 flex flex-col items-center gap-0.5">
                                     {schoolLogo && <img src={schoolLogo} alt="Logo" className="w-7 h-7 object-contain" />}
                                     <div>
-                                        <h3 className="text-[8px] font-bold uppercase text-slate-800 leading-tight">PEMERINTAH PROVINSI BANTEN • DINAS PENDIDIKAN DAN KEBUDAYAAN</h3>
+                                        <h3 className="text-[8px] font-bold uppercase text-slate-800 leading-tight">
+    PEMERINTAH PROVINSI BANTEN<br />
+    DINAS PENDIDIKAN DAN KEBUDAYAAN
+</h3>
                                         <h2 className="text-[11px] font-extrabold text-blue-900 leading-tight">SMAN 7 KOTA TANGERANG SELATAN</h2>
                                         <p className="text-[7.5px] text-slate-600 leading-tight">Jl. Villa Melati Mas Blok J, Pondok Jagung, Kec. Serpong Utara, Kota Tangerang Selatan</p>
                                     </div>
@@ -1322,7 +1325,7 @@
                                         <div><strong>Organisasi:</strong> {selectedBookingDetail.orgName}</div>
                                         <div><strong>Nama Kegiatan / Pelatihan:</strong> {selectedBookingDetail.activityName}</div>
                                         <div><strong>Ruangan:</strong> {selectedBookingDetail.roomName}</div>
-                                        <div><strong>Tanggal & Waktu:</strong> {selectedBookingDetail.date} ({selectedBookingDetail.startTime} - {selectedBookingDetail.endTime})</div>
+                                        <div><strong>Tanggal & Waktu:</strong> {selectedBookingDetail.date} ({selectedBookingDetail.startTime} - {selectedBookingDetail.endTime} WIB)</div>
                                         <div><strong>Peminjam:</strong> {selectedBookingDetail.applicantName} (NIS: {selectedBookingDetail.applicantNis || '-'})</div>
                                         <div><strong>Penanggung Jawab:</strong> {selectedBookingDetail.pjName}</div>
                                         <div><strong>Pendamping / Wali Kelas:</strong> {selectedBookingDetail.waliKelas}</div>
