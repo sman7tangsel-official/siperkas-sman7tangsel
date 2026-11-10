@@ -1325,7 +1325,7 @@
                                         <div><strong>Organisasi:</strong> {selectedBookingDetail.orgName}</div>
                                         <div><strong>Nama Kegiatan / Pelatihan:</strong> {selectedBookingDetail.activityName}</div>
                                         <div><strong>Ruangan:</strong> {selectedBookingDetail.roomName}</div>
-                                        <div><strong>Tanggal & Waktu:</strong> {selectedBookingDetail.date} ({selectedBookingDetail.startTime} - {selectedBookingDetail.endTime} WIB)</div>
+                                        <div><strong>Tanggal & Waktu:</strong> {selectedBookingDetail.date} ({String(selectedBookingDetail.startTime).includes('T') ? '08:00' : (selectedBookingDetail.startTime || '08:00')} - {String(selectedBookingDetail.endTime).includes('T') ? '10:00' : (selectedBookingDetail.endTime || '10:00')} WIB)</div>
                                         <div><strong>Peminjam:</strong> {selectedBookingDetail.applicantName} (NIS: {selectedBookingDetail.applicantNis || '-'})</div>
                                         <div><strong>Penanggung Jawab:</strong> {selectedBookingDetail.pjName}</div>
                                         <div><strong>Pendamping / Wali Kelas:</strong> {selectedBookingDetail.waliKelas}</div>
