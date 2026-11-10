@@ -229,12 +229,20 @@
                                     } catch(e) {}
                                 }
                                 
+                                // Ambil foto dari fullData atau fallback langsung dari item jika ada
                                 let cloudBefore = [];
                                 let cloudAfter = [];
                                 
                                 if (parsedFull) {
                                     if (parsedFull.beforePhotos) cloudBefore = safeArray(parsedFull.beforePhotos);
                                     if (parsedFull.afterPhotos) cloudAfter = safeArray(parsedFull.afterPhotos);
+                                }
+                                
+                                if (cloudBefore.length === 0 && item.beforePhotos) {
+                                    cloudBefore = safeArray(item.beforePhotos);
+                                }
+                                if (cloudAfter.length === 0 && item.afterPhotos) {
+                                    cloudAfter = safeArray(item.afterPhotos);
                                 }
                                 
                                 const cloudStatus = item.status || (parsedFull && parsedFull.status) || 'Menunggu Persetujuan';
