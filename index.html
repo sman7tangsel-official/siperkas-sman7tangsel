@@ -1116,13 +1116,13 @@
                         </div>
                     )}
 
-                    {/* MODAL LOGIN WALI KELAS */}
+                    {/* MODAL LOGIN WALI KELAS (HINT DIHAPUS) */}
                     {activeModal === 'walas_login_prompt' && (
                         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
                             <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
                                 <div className="text-3xl">🔑</div>
                                 <h3 className="text-lg font-bold text-slate-800">Autentikasi Wali Kelas</h3>
-                                <p className="text-[11px] text-slate-500">Masukkan kata sandi Wali Kelas untuk memberikan persetujuan (default: <span className="font-bold text-slate-700">walas123</span>)</p>
+                                <p className="text-[11px] text-slate-500">Masukkan kata sandi Wali Kelas untuk memberikan persetujuan</p>
                                 <form onSubmit={(e) => {
                                     e.preventDefault();
                                     if (walasPasswordInput === 'walas123') {
