@@ -845,15 +845,25 @@
                                                             <img src={imgSrc} alt={`Awal ${i+1}`} className="w-full h-32 object-cover" />
                                                             <div className="bg-black/70 text-white text-[9px] p-1.5 font-mono text-center">📍 {timeStampText}</div>
                                                             <button type="button" onClick={() => {
-                                                                if (window.confirm("Hapus foto awal ini?")) {
-                                                                    const filteredPhotos = safeArray(selectedBookingDetail.beforePhotos).filter((_, index) => index !== i);
-                                                                    const newStatus = filteredPhotos.length === 0 ? 'Menunggu Persetujuan' : 'Sedang Digunakan';
-                                                                    const updatedItem = {...selectedBookingDetail, beforePhotos: filteredPhotos, status: newStatus};
-                                                                    const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
-                                                                    saveBookingToCloud(updatedBookings, updatedItem);
-                                                                    showToast("Foto awal dihapus & tersimpan.");
-                                                                }
-                                                            }} className="absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center font-bold">✕</button>
+                                    if (window.confirm("Hapus foto akhir ini? Status peminjaman akan dikembalikan karena dokumentasi belum lengkap.")) {
+                                        const filteredPhotos = safeArray(selectedBookingDetail.afterPhotos).filter((_, index) => index !== i);
+                                        
+                                        // Jika foto akhir habis/dihapus, status otomatis kembali ke 'Sedang Digunakan'
+                                        const newStatus = filteredPhotos.length === 0 ? 'Sedang Digunakan' : selectedBookingDetail.status;
+                                        
+                                        const updatedItem = {
+                                            ...selectedBookingDetail, 
+                                            afterPhotos: filteredPhotos,
+                                            status: newStatus
+                                        };
+                                        
+                                        const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
+                                        saveBookingToCloud(updatedBookings, updatedItem);
+                                        
+                                        // Menampilkan notifikasi peringatan sesuai saran Anda
+                                        showToast('⚠️ Dokumentasi belum lengkap: Foto akhir dihapus, status kembali ke Sedang Digunakan.');
+                                    }
+                                }} className="absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center font-bold">✕</button>
                                                         </div>
                                                     );
                                                 })
