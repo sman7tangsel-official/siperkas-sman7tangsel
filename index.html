@@ -883,12 +883,22 @@
                                                             <img src={imgSrc} alt={`Akhir ${i+1}`} className="w-full h-32 object-cover" />
                                                             <div className="bg-black/70 text-white text-[9px] p-1.5 font-mono text-center">📍 {timeStampText}</div>
                                                             <button type="button" onClick={() => {
-                                                                if (window.confirm("Hapus foto akhir ini?")) {
+                                                                if (window.confirm("Hapus foto akhir ini? Status peminjaman akan dikembalikan karena dokumentasi belum lengkap.")) {
                                                                     const filteredPhotos = safeArray(selectedBookingDetail.afterPhotos).filter((_, index) => index !== i);
-                                                                    const updatedItem = {...selectedBookingDetail, afterPhotos: filteredPhotos};
+                                                                    
+                                                                    // Jika foto akhir habis, status otomatis kembali ke 'Sedang Digunakan'
+                                                                    const newStatus = filteredPhotos.length === 0 ? 'Sedang Digunakan' : selectedBookingDetail.status;
+                                                                    
+                                                                    const updatedItem = {
+                                                                        ...selectedBookingDetail, 
+                                                                        afterPhotos: filteredPhotos,
+                                                                        status: newStatus
+                                                                    };
+                                                                    
                                                                     const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
                                                                     saveBookingToCloud(updatedBookings, updatedItem);
-                                                                    showToast("Foto akhir dihapus & tersimpan.");
+                                                                    
+                                                                    showToast('⚠️ Dokumentasi belum lengkap: Foto akhir dihapus, status dikembalikan ke Sedang Digunakan.');
                                                                 }
                                                             }} className="absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center font-bold">✕</button>
                                                         </div>
