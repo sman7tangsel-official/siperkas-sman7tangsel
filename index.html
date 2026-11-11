@@ -646,15 +646,17 @@
                                                                 'bg-amber-50 text-amber-700 border border-amber-200'
                                                             }`}>{b.status}</span>
                                                             
-                                                            {currentUserRole === 'walikelas' && b.status === 'Menunggu Persetujuan' && (
+                                                            {/* ✅ Tombol Persetujuan Khusus Wali Kelas / Admin pada Tabel */}
+                                                            {(currentUserRole === 'walikelas' || currentUserRole === 'admin') && b.status === 'Menunggu Persetujuan' && (
                                                                 <button 
+                                                                    type="button"
                                                                     onClick={() => {
                                                                         const updatedItem = { ...b, status: 'Disetujui' };
                                                                         const updated = bookings.map(item => item.id === b.id ? updatedItem : item);
                                                                         saveBookingToCloud(updated, updatedItem);
-                                                                        showToast(`Izin ruangan ${b.roomName} disetujui.`);
+                                                                        showToast(`✅ Peminjaman ${b.id} berhasil disetujui.`);
                                                                     }}
-                                                                    className="block w-full mt-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold shadow"
+                                                                    className="block w-full mt-1.5 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold shadow text-center transition"
                                                                 >
                                                                     ✓ ACC Wali Kelas
                                                                 </button>
@@ -826,9 +828,11 @@
                     {activeModal === 'detail' && selectedBookingDetail && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto no-print">
                             <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 my-8">
-                                <div className="flex justify-between items-start">
+                                <div className="flex justify-between items-start gap-2">
                                     <h3 className="text-lg font-bold text-slate-800">Detail Peminjaman: {selectedBookingDetail.id}</h3>
-                                    {currentUserRole === 'walikelas' && selectedBookingDetail.status === 'Menunggu Persetujuan' && (
+                                    
+                                    {/* ✅ Tombol Persetujuan Khusus Wali Kelas / Admin pada Header Modal Detail */}
+                                    {(currentUserRole === 'walikelas' || currentUserRole === 'admin') && selectedBookingDetail.status === 'Menunggu Persetujuan' && (
                                         <button 
                                             type="button" 
                                             onClick={() => {
@@ -838,7 +842,7 @@
                                                 saveBookingToCloud(updatedBookings, updatedItem);
                                                 showToast('✅ Peminjaman disetujui oleh Wali Kelas.');
                                             }}
-                                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow"
+                                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition shrink-0"
                                         >
                                             ✓ Berikan Izin Wali Kelas
                                         </button>
