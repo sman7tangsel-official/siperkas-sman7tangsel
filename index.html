@@ -846,9 +846,9 @@
                                                             <img src={imgSrc} alt={`Awal ${i+1}`} className="w-full h-32 object-cover" />
                                                             <div className="bg-black/70 text-white text-[9px] p-1.5 font-mono text-center">📍 {timeStampText}</div>
                                                             <button type="button" onClick={() => {
-                                                                if (window.confirm("Hapus foto awal ini? Jika seluruh foto awal dihapus, status dikembalikan ke Disetujui.")) {
+                                                                if (window.confirm("Hapus foto awal ini? Jika seluruh foto awal dihapus, status dikembalikan ke Menunggu Persetujuan.")) {
                                                                     const filteredPhotos = safeArray(selectedBookingDetail.beforePhotos).filter((_, index) => index !== i);
-                                                                    const newStatus = filteredPhotos.length === 0 ? 'Disetujui' : selectedBookingDetail.status;
+                                                                    const newStatus = filteredPhotos.length === 0 ? 'Menunggu Persetujuan' : selectedBookingDetail.status;
                                                                     const updatedItem = {
                                                                         ...selectedBookingDetail, 
                                                                         beforePhotos: filteredPhotos,
@@ -857,7 +857,7 @@
                                                                     setSelectedBookingDetail(updatedItem);
                                                                     const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
                                                                     saveBookingToCloud(updatedBookings, updatedItem);
-                                                                    showToast('⚠️ Foto awal dihapus. Status dikembalikan ke Disetujui.');
+                                                                    showToast('⚠️ Foto awal dihapus. Status dikembalikan ke Menunggu Persetujuan.');
                                                                 }
                                                             }} className="absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center font-bold">✕</button>
                                                         </div>
