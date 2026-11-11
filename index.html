@@ -206,6 +206,7 @@
         function App() {
             const [currentUserRole, setCurrentUserRole] = useState('applicant');
             const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+            const [isWalasAuthenticated, setIsWalasAuthenticated] = useState(false);
 
             const [rooms, setRooms] = useState(() => {
                 try {
@@ -342,6 +343,7 @@
             const [editingBooking, setEditingBooking] = useState(null);
             const [activeModal, setActiveModal] = useState(null);
             const [adminPasswordInput, setAdminPasswordInput] = useState('');
+            const [walasPasswordInput, setWalasPasswordInput] = useState('');
             const [toast, setToast] = useState(null);
             const [selectedPreselectedRoomId, setSelectedPreselectedRoomId] = useState('');
 
@@ -443,6 +445,8 @@
             const handleRoleChange = (newRole) => {
                 if (newRole === 'admin' && !isAdminAuthenticated) {
                     setActiveModal('admin_login_prompt');
+                } else if (newRole === 'walikelas' && !isWalasAuthenticated) {
+                    setActiveModal('walas_login_prompt');
                 } else {
                     setCurrentUserRole(newRole);
                     showToast(`Beralih peran ke: ${ROLES.find(r => r.id === newRole)?.label}`);
@@ -454,6 +458,13 @@
                 setCurrentUserRole('applicant');
                 setActiveTab('dashboard');
                 showToast('Berhasil keluar dari mode Administrator.');
+            };
+
+            const handleWalasLogout = () => {
+                setIsWalasAuthenticated(false);
+                setCurrentUserRole('applicant');
+                setActiveTab('dashboard');
+                showToast('Berhasil keluar dari mode Wali Kelas.');
             };
 
             const handleDeleteBooking = (bookingId) => {
@@ -532,7 +543,10 @@
                                     {ROLES.map(r => <option key={r.id} value={r.id}>{r.label} ({r.badge})</option>)}
                                 </select>
                                 {currentUserRole === 'admin' && isAdminAuthenticated && (
-                                    <button onClick={handleAdminLogout} className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow">🔒 Logout</button>
+                                    <button onClick={handleAdminLogout} className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow">🔒 Logout Admin</button>
+                                )}
+                                {currentUserRole === 'walikelas' && isWalasAuthenticated && (
+                                    <button onClick={handleWalasLogout} className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow">🔒 Logout Walas</button>
                                 )}
                             </div>
                         </div>
@@ -646,8 +660,8 @@
                                                                 'bg-amber-50 text-amber-700 border border-amber-200'
                                                             }`}>{b.status}</span>
                                                             
-                                                            {/* ✅ Tombol Persetujuan Khusus Wali Kelas / Admin pada Tabel */}
-                                                            {(currentUserRole === 'walikelas' || currentUserRole === 'admin') && b.status === 'Menunggu Persetujuan' && (
+                                                            {/* ✅ Tombol Persetujuan Khusus Wali Kelas (Memerlukan Login Walas jika belum login) / Admin */}
+                                                            {((currentUserRole === 'walikelas' && isWalasAuthenticated) || currentUserRole === 'admin') && b.status === 'Menunggu Persetujuan' && (
                                                                 <button 
                                                                     type="button"
                                                                     onClick={() => {
@@ -659,6 +673,16 @@
                                                                     className="block w-full mt-1.5 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold shadow text-center transition"
                                                                 >
                                                                     ✓ ACC Wali Kelas
+                                                                </button>
+                                                            )}
+
+                                                            {currentUserRole === 'walikelas' && !isWalasAuthenticated && b.status === 'Menunggu Persetujuan' && (
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => setActiveModal('walas_login_prompt')}
+                                                                    className="block w-full mt-1.5 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-bold shadow text-center transition"
+                                                                >
+                                                                    🔐 Login Walas untuk ACC
                                                                 </button>
                                                             )}
 
@@ -831,8 +855,8 @@
                                 <div className="flex justify-between items-start gap-2">
                                     <h3 className="text-lg font-bold text-slate-800">Detail Peminjaman: {selectedBookingDetail.id}</h3>
                                     
-                                    {/* ✅ Tombol Persetujuan Khusus Wali Kelas / Admin pada Header Modal Detail */}
-                                    {(currentUserRole === 'walikelas' || currentUserRole === 'admin') && selectedBookingDetail.status === 'Menunggu Persetujuan' && (
+                                    {/* ✅ Tombol Persetujuan Khusus Wali Kelas (Memerlukan Login Walas) / Admin pada Header Modal Detail */}
+                                    {((currentUserRole === 'walikelas' && isWalasAuthenticated) || currentUserRole === 'admin') && selectedBookingDetail.status === 'Menunggu Persetujuan' && (
                                         <button 
                                             type="button" 
                                             onClick={() => {
@@ -845,6 +869,16 @@
                                             className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition shrink-0"
                                         >
                                             ✓ Berikan Izin Wali Kelas
+                                        </button>
+                                    )}
+
+                                    {currentUserRole === 'walikelas' && !isWalasAuthenticated && selectedBookingDetail.status === 'Menunggu Persetujuan' && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setActiveModal('walas_login_prompt')}
+                                            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow transition shrink-0"
+                                        >
+                                            🔐 Login Walas
                                         </button>
                                     )}
                                 </div>
@@ -1053,124 +1087,6 @@
                         </div>
                     )}
 
-                    {/* MODAL CHECKLIST VERIFIKASI */}
-                    {activeModal === 'checklist_verification' && (
-                        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
-                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-                                <div className="flex items-center gap-2 text-emerald-600 font-bold border-b pb-2">
-                                    <Icon name="check-circle" className="w-6 h-6" />
-                                    <h3 className="text-base text-slate-800">Checklist Verifikasi Pengembalian Ruangan</h3>
-                                </div>
-                                <div className="space-y-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                    <label className="flex items-start gap-2.5 cursor-pointer">
-                                        <input type="checkbox" checked={verificationChecklist.photosValid} onChange={(e) => setVerificationChecklist({...verificationChecklist, photosValid: e.target.checked})} className="mt-0.5 rounded text-emerald-600 w-4 h-4" />
-                                        <span className="font-semibold text-slate-700">Foto Kondisi Akhir Ruangan Lengkap & Dilengkapi Timestamp.</span>
-                                    </label>
-                                    <label className="flex items-start gap-2.5 cursor-pointer">
-                                        <input type="checkbox" checked={verificationChecklist.powerOff} onChange={(e) => setVerificationChecklist({...verificationChecklist, powerOff: e.target.checked})} className="mt-0.5 rounded text-emerald-600 w-4 h-4" />
-                                        <span className="font-semibold text-slate-700">AC, Lampu, dan Proyektor Sudah Dimatikan.</span>
-                                    </label>
-                                    <label className="flex items-start gap-2.5 cursor-pointer">
-                                        <input type="checkbox" checked={verificationChecklist.cleanAndTidy} onChange={(e) => setVerificationChecklist({...verificationChecklist, cleanAndTidy: e.target.checked})} className="mt-0.5 rounded text-emerald-600 w-4 h-4" />
-                                        <span className="font-semibold text-slate-700">Ruangan Bersih, Sampah Dibuang, & Meja Kursi Dirapikan.</span>
-                                    </label>
-                                </div>
-                                <div className="flex justify-end gap-2 pt-2">
-                                    <button type="button" onClick={() => {
-                                        if (!verificationChecklist.powerOff || !verificationChecklist.cleanAndTidy) {
-                                            alert("Mohon centang seluruh syarat verifikasi!");
-                                            return;
-                                        }
-                                        const combined = [...safeArray(selectedBookingDetail.afterPhotos), ...pendingAfterPhotos];
-                                        const updatedItem = {
-                                            ...selectedBookingDetail, 
-                                            afterPhotos: combined, 
-                                            status: 'Selesai'
-                                        };
-                                        const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
-                                        saveBookingToCloud(updatedBookings, updatedItem);
-                                        setPendingAfterPhotos([]);
-                                        setActiveModal('detail');
-                                        showToast('Peminjaman selesai, foto akhir tersimpan & tersinkron!');
-                                    }} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow">
-                                        Verifikasi & Selesaikan
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* MODAL EDIT BOOKING */}
-                    {activeModal === 'edit_booking' && editingBooking && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto no-print">
-                            <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 my-8">
-                                <h3 className="text-lg font-bold text-slate-800">Edit Peminjaman: {editingBooking.id}</h3>
-                                <form onSubmit={(e) => {
-                                    e.preventDefault();
-                                    const fd = new FormData(e.target);
-                                    const rObj = rooms.find(r => r.id === fd.get('roomId'));
-                                    const updatedItem = {
-                                        ...editingBooking,
-                                        orgName: fd.get('orgName'),
-                                        activityName: fd.get('activityName'),
-                                        applicantName: fd.get('applicantName'),
-                                        applicantNis: fd.get('applicantNis'),
-                                        applicantClass: fd.get('applicantClass'),
-                                        applicantWa: fd.get('applicantWa'),
-                                        pjName: fd.get('pjName'),
-                                        pjNisNip: fd.get('pjNisNip'),
-                                        pjWa: fd.get('pjWa'),
-                                        roomId: fd.get('roomId'),
-                                        roomName: rObj ? rObj.name : editingBooking.roomName,
-                                        waliKelas: rObj ? rObj.waliKelas : editingBooking.waliKelas,
-                                        nipWali: rObj ? rObj.nipWali : editingBooking.nipWali,
-                                        date: fd.get('date'),
-                                        startTime: fd.get('startTime'),
-                                        endTime: fd.get('endTime'),
-                                        status: fd.get('status'),
-                                        notes: fd.get('notes')
-                                    };
-                                    const updatedList = bookings.map(b => b.id === editingBooking.id ? updatedItem : b);
-                                    saveBookingToCloud(updatedList, updatedItem);
-                                    logActivity(`Mengedit peminjaman ${editingBooking.id}`);
-                                    showToast('Data peminjaman diperbarui!');
-                                    setEditingBooking(null);
-                                    setActiveModal(null);
-                                }} className="space-y-3 text-xs">
-                                    <div><label className="font-semibold block mb-1">Organisasi</label><select name="orgName" defaultValue={editingBooking.orgName} className="w-full border rounded-lg p-2 bg-white" required>{organizations.map(o => <option key={o.id} value={o.name}>{o.name}</option>)}</select></div>
-                                    <div><label className="font-semibold block mb-1">Nama Kegiatan</label><input type="text" name="activityName" defaultValue={editingBooking.activityName} className="w-full border rounded-lg p-2" required /></div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <div><label className="font-semibold block mb-1">Nama Peminjam</label><input type="text" name="applicantName" defaultValue={editingBooking.applicantName} className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">NIS</label><input type="text" name="applicantNis" defaultValue={editingBooking.applicantNis} className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">Kelas</label><input type="text" name="applicantClass" defaultValue={editingBooking.applicantClass} className="w-full border rounded-lg p-2" required /></div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div><label className="font-semibold block mb-1">No WA Peminjam</label><input type="text" name="applicantWa" defaultValue={editingBooking.applicantWa} className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">Ruangan</label><select name="roomId" defaultValue={editingBooking.roomId} className="w-full border rounded-lg p-2 bg-white" required>{rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></div>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <div><label className="font-semibold block mb-1">Tanggal</label><input type="date" name="date" defaultValue={editingBooking.date} className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">Jam Mulai</label><input type="time" name="startTime" defaultValue={editingBooking.startTime} className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">Jam Selesai</label><input type="time" name="endTime" defaultValue={editingBooking.endTime} className="w-full border rounded-lg p-2" required /></div>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <div><label className="font-semibold block mb-1">Nama PJ</label><input type="text" name="pjName" defaultValue={editingBooking.pjName} className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">NIS/NIP PJ</label><input type="text" name="pjNisNip" defaultValue={editingBooking.pjNisNip} className="w-full border rounded-lg p-2" required /></div>
-                                        <div><label className="font-semibold block mb-1">No WA PJ</label><input type="text" name="pjWa" defaultValue={editingBooking.pjWa} className="w-full border rounded-lg p-2" required /></div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div><label className="font-semibold block mb-1">Status</label><select name="status" defaultValue={editingBooking.status} className="w-full border rounded-lg p-2 bg-white"><option value="Menunggu Persetujuan">Menunggu Persetujuan</option><option value="Disetujui">Disetujui</option><option value="Sedang Digunakan">Sedang Digunakan</option><option value="Selesai">Selesai</option><option value="Ditolak">Ditolak</option></select></div>
-                                        <div><label className="font-semibold block mb-1">Catatan</label><input type="text" name="notes" defaultValue={editingBooking.notes} className="w-full border rounded-lg p-2" /></div>
-                                    </div>
-                                    <div className="flex justify-end gap-2 pt-3">
-                                        <button type="button" onClick={() => { setEditingBooking(null); setActiveModal(null); }} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-xl">Batal</button>
-                                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-xl">Simpan</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
                     {/* MODAL LOGIN ADMIN */}
                     {activeModal === 'admin_login_prompt' && (
                         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
@@ -1194,6 +1110,36 @@
                                     <div className="flex gap-2 pt-2">
                                         <button type="button" onClick={() => { setActiveModal(null); setAdminPasswordInput(''); setCurrentUserRole('applicant'); }} className="w-1/2 py-2 bg-slate-200 rounded-xl">Batal</button>
                                         <button type="submit" className="w-1/2 py-2 bg-blue-600 text-white rounded-xl">Masuk</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL LOGIN WALI KELAS */}
+                    {activeModal === 'walas_login_prompt' && (
+                        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+                            <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
+                                <div className="text-3xl">🔑</div>
+                                <h3 className="text-lg font-bold text-slate-800">Autentikasi Wali Kelas</h3>
+                                <p className="text-[11px] text-slate-500">Masukkan kata sandi Wali Kelas untuk memberikan persetujuan (default: <span className="font-bold text-slate-700">walas123</span>)</p>
+                                <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    if (walasPasswordInput === 'walas123') {
+                                        setIsWalasAuthenticated(true);
+                                        setCurrentUserRole('walikelas');
+                                        setActiveModal(null);
+                                        setWalasPasswordInput('');
+                                        showToast('Login Wali Kelas Berhasil! Silakan lakukan ACC.');
+                                    } else {
+                                        showToast('Kata sandi Wali Kelas salah!');
+                                        setWalasPasswordInput('');
+                                    }
+                                }} className="space-y-3 text-xs">
+                                    <input type="password" value={walasPasswordInput} onChange={(e) => setWalasPasswordInput(e.target.value)} placeholder="Password Wali Kelas" className="w-full border rounded-lg p-2.5 text-center font-bold tracking-widest text-sm" autoFocus required />
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => { setActiveModal(null); setWalasPasswordInput(''); setCurrentUserRole('applicant'); }} className="w-1/2 py-2 bg-slate-200 rounded-xl">Batal</button>
+                                        <button type="submit" className="w-1/2 py-2 bg-emerald-600 text-white rounded-xl">Masuk</button>
                                     </div>
                                 </form>
                             </div>
