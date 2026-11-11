@@ -833,8 +833,8 @@
 
                                 <div className="border p-3 rounded-xl space-y-3 bg-slate-50">
                                     <h4 className="font-bold text-xs uppercase text-slate-700">VERIFIKASI MULTI-FOTO DOKUMENTASI & TIMESTAMP</h4>
+                                    
                                     <div>
-                                        <div>
                                         <p className="font-semibold text-[11px] text-slate-600 mb-1">Foto Kondisi Awal (Bisa Pilih Banyak Foto / Kamera Langsung):</p>
                                         <div className="grid grid-cols-2 gap-3">
                                             {safeArray(selectedBookingDetail.beforePhotos).length > 0 ? (
@@ -848,23 +848,15 @@
                                                             <button type="button" onClick={() => {
                                                                 if (window.confirm("Hapus foto awal ini? Jika seluruh foto awal dihapus, status dikembalikan ke Disetujui.")) {
                                                                     const filteredPhotos = safeArray(selectedBookingDetail.beforePhotos).filter((_, index) => index !== i);
-                                                                    
-                                                                    // Jika foto awal habis, kembalikan status ke 'Disetujui'
                                                                     const newStatus = filteredPhotos.length === 0 ? 'Disetujui' : selectedBookingDetail.status;
-                                                                    
                                                                     const updatedItem = {
                                                                         ...selectedBookingDetail, 
                                                                         beforePhotos: filteredPhotos,
                                                                         status: newStatus
                                                                     };
-                                                                    
-                                                                    // 1. Update State Modal Langsung
                                                                     setSelectedBookingDetail(updatedItem);
-                                                                    
-                                                                    // 2. Simpan ke State Utama & Cloud
                                                                     const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
                                                                     saveBookingToCloud(updatedBookings, updatedItem);
-                                                                    
                                                                     showToast('⚠️ Foto awal dihapus. Status dikembalikan ke Disetujui.');
                                                                 }
                                                             }} className="absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center font-bold">✕</button>
@@ -889,23 +881,15 @@
                                                             <button type="button" onClick={() => {
                                                                 if (window.confirm("Hapus foto akhir ini? Status dikembalikan ke Sedang Digunakan.")) {
                                                                     const filteredPhotos = safeArray(selectedBookingDetail.afterPhotos).filter((_, index) => index !== i);
-                                                                    
-                                                                    // Jika foto akhir habis, kembalikan status ke 'Sedang Digunakan'
                                                                     const newStatus = filteredPhotos.length === 0 ? 'Sedang Digunakan' : selectedBookingDetail.status;
-                                                                    
                                                                     const updatedItem = {
                                                                         ...selectedBookingDetail, 
                                                                         afterPhotos: filteredPhotos,
                                                                         status: newStatus
                                                                     };
-                                                                    
-                                                                    // 1. Update State Modal Langsung
                                                                     setSelectedBookingDetail(updatedItem);
-                                                                    
-                                                                    // 2. Simpan ke State Utama & Cloud
                                                                     const updatedBookings = bookings.map(b => b.id === selectedBookingDetail.id ? updatedItem : b);
                                                                     saveBookingToCloud(updatedBookings, updatedItem);
-                                                                    
                                                                     showToast('⚠️ Foto akhir dihapus. Status dikembalikan ke Sedang Digunakan.');
                                                                 }
                                                             }} className="absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full p-1 text-xs w-6 h-6 flex items-center justify-center font-bold">✕</button>
